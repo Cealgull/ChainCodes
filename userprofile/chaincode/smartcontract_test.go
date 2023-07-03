@@ -36,12 +36,12 @@ func TestInitLedger(t *testing.T) {
 	transactionContext := &mocks.TransactionContext{}
 	transactionContext.GetStubReturns(chaincodeStub)
 
-	assetTransfer := chaincode.SmartContract{}
-	err := assetTransfer.InitLedger(transactionContext)
+	userprofile := chaincode.SmartContract{}
+	err := userprofile.InitLedger(transactionContext)
 	require.NoError(t, err)
 
 	chaincodeStub.PutStateReturns(fmt.Errorf("failed inserting key"))
-	err = assetTransfer.InitLedger(transactionContext)
+	err = userprofile.InitLedger(transactionContext)
 	require.EqualError(t, err, "failed to put to world state. failed inserting key")
 }
 
@@ -50,16 +50,16 @@ func TestCreateUser(t *testing.T) {
 	transactionContext := &mocks.TransactionContext{}
 	transactionContext.GetStubReturns(chaincodeStub)
 
-	assetTransfer := chaincode.SmartContract{}
-	err := assetTransfer.CreateUser(transactionContext, "", "", "", "")
+	userprofile := chaincode.SmartContract{}
+	err := userprofile.CreateUser(transactionContext, "", "", "", "")
 	require.NoError(t, err)
 
 	chaincodeStub.GetStateReturns([]byte{}, nil)
-	err = assetTransfer.CreateUser(transactionContext, "user1", "", "", "")
+	err = userprofile.CreateUser(transactionContext, "user1", "", "", "")
 	require.EqualError(t, err, "the user user1 already exists")
 
 	chaincodeStub.GetStateReturns(nil, fmt.Errorf("unable to retrieve asset"))
-	err = assetTransfer.CreateUser(transactionContext, "user1", "", "", "")
+	err = userprofile.CreateUser(transactionContext, "user1", "", "", "")
 	require.EqualError(t, err, "failed to read from world state: unable to retrieve asset")
 }
 
@@ -73,17 +73,17 @@ func TestReadUser(t *testing.T) {
 	require.NoError(t, err)
 
 	chaincodeStub.GetStateReturns(bytes, nil)
-	assetTransfer := chaincode.SmartContract{}
-	asset, err := assetTransfer.ReadUser(transactionContext, "")
+	userprofile := chaincode.SmartContract{}
+	asset, err := userprofile.ReadUser(transactionContext, "")
 	require.NoError(t, err)
 	require.Equal(t, expectedAsset, asset)
 
 	chaincodeStub.GetStateReturns(nil, fmt.Errorf("unable to retrieve asset"))
-	_, err = assetTransfer.ReadUser(transactionContext, "")
+	_, err = userprofile.ReadUser(transactionContext, "")
 	require.EqualError(t, err, "failed to read from world state: unable to retrieve asset")
 
 	chaincodeStub.GetStateReturns(nil, nil)
-	asset, err = assetTransfer.ReadUser(transactionContext, "user1")
+	asset, err = userprofile.ReadUser(transactionContext, "user1")
 	require.EqualError(t, err, "the user user1 does not exist")
 	require.Nil(t, asset)
 }
@@ -98,16 +98,16 @@ func TestUpdateUser(t *testing.T) {
 	require.NoError(t, err)
 
 	chaincodeStub.GetStateReturns(bytes, nil)
-	assetTransfer := chaincode.SmartContract{}
-	err = assetTransfer.UpdateUser(transactionContext, "", "", "", "")
+	userprofile := chaincode.SmartContract{}
+	err = userprofile.UpdateUser(transactionContext, "", "", "", "")
 	require.NoError(t, err)
 
 	chaincodeStub.GetStateReturns(nil, nil)
-	err = assetTransfer.UpdateUser(transactionContext, "user1", "", "", "")
+	err = userprofile.UpdateUser(transactionContext, "user1", "", "", "")
 	require.EqualError(t, err, "the user user1 does not exist")
 
 	chaincodeStub.GetStateReturns(nil, fmt.Errorf("unable to retrieve asset"))
-	err = assetTransfer.UpdateUser(transactionContext, "user1", "", "", "")
+	err = userprofile.UpdateUser(transactionContext, "user1", "", "", "")
 	require.EqualError(t, err, "failed to read from world state: unable to retrieve asset")
 }
 
@@ -121,16 +121,16 @@ func TestAssignRole(t *testing.T) {
 	require.NoError(t, err)
 
 	chaincodeStub.GetStateReturns(bytes, nil)
-	userinfo := chaincode.SmartContract{}
-	err = userinfo.AssignRole(transactionContext, "user1", "Admin")
+	userprofile := chaincode.SmartContract{}
+	err = userprofile.AssignRole(transactionContext, "user1", "Admin")
 	require.NoError(t, err)
 
 	chaincodeStub.GetStateReturns(nil, nil)
-	err = userinfo.AssignRole(transactionContext, "user1", "")
+	err = userprofile.AssignRole(transactionContext, "user1", "")
 	require.EqualError(t, err, "the user user1 does not exist")
 
 	chaincodeStub.GetStateReturns(nil, fmt.Errorf("unable to retrieve asset"))
-	err = userinfo.AssignRole(transactionContext, "", "")
+	err = userprofile.AssignRole(transactionContext, "", "")
 	require.EqualError(t, err, "failed to read from world state: unable to retrieve asset")
 }
 
@@ -144,16 +144,16 @@ func TestRemoveRole(t *testing.T) {
 	require.NoError(t, err)
 
 	chaincodeStub.GetStateReturns(bytes, nil)
-	userinfo := chaincode.SmartContract{}
-	err = userinfo.RemoveRole(transactionContext, "user1", "Admin")
+	userprofile := chaincode.SmartContract{}
+	err = userprofile.RemoveRole(transactionContext, "user1", "Admin")
 	require.NoError(t, err)
 
 	chaincodeStub.GetStateReturns(nil, nil)
-	err = userinfo.RemoveRole(transactionContext, "user1", "")
+	err = userprofile.RemoveRole(transactionContext, "user1", "")
 	require.EqualError(t, err, "the user user1 does not exist")
 
 	chaincodeStub.GetStateReturns(nil, fmt.Errorf("unable to retrieve asset"))
-	err = userinfo.RemoveRole(transactionContext, "", "")
+	err = userprofile.RemoveRole(transactionContext, "", "")
 	require.EqualError(t, err, "failed to read from world state: unable to retrieve asset")
 }
 
@@ -167,16 +167,16 @@ func TestAssignBadge(t *testing.T) {
 	require.NoError(t, err)
 
 	chaincodeStub.GetStateReturns(bytes, nil)
-	userinfo := chaincode.SmartContract{}
-	err = userinfo.AssignBadge(transactionContext, "user1", "Admin")
+	userprofile := chaincode.SmartContract{}
+	err = userprofile.AssignBadge(transactionContext, "user1", "Admin")
 	require.NoError(t, err)
 
 	chaincodeStub.GetStateReturns(nil, nil)
-	err = userinfo.AssignBadge(transactionContext, "user1", "")
+	err = userprofile.AssignBadge(transactionContext, "user1", "")
 	require.EqualError(t, err, "the user user1 does not exist")
 
 	chaincodeStub.GetStateReturns(nil, fmt.Errorf("unable to retrieve asset"))
-	err = userinfo.AssignBadge(transactionContext, "", "")
+	err = userprofile.AssignBadge(transactionContext, "", "")
 	require.EqualError(t, err, "failed to read from world state: unable to retrieve asset")
 }
 
@@ -190,16 +190,16 @@ func TestRemoveBadge(t *testing.T) {
 	require.NoError(t, err)
 
 	chaincodeStub.GetStateReturns(bytes, nil)
-	userinfo := chaincode.SmartContract{}
-	err = userinfo.RemoveBadge(transactionContext, "user1", "Admin")
+	userprofile := chaincode.SmartContract{}
+	err = userprofile.RemoveBadge(transactionContext, "user1", "Admin")
 	require.NoError(t, err)
 
 	chaincodeStub.GetStateReturns(nil, nil)
-	err = userinfo.RemoveBadge(transactionContext, "user1", "")
+	err = userprofile.RemoveBadge(transactionContext, "user1", "")
 	require.EqualError(t, err, "the user user1 does not exist")
 
 	chaincodeStub.GetStateReturns(nil, fmt.Errorf("unable to retrieve asset"))
-	err = userinfo.RemoveBadge(transactionContext, "", "")
+	err = userprofile.RemoveBadge(transactionContext, "", "")
 	require.EqualError(t, err, "failed to read from world state: unable to retrieve asset")
 }
 
@@ -218,19 +218,19 @@ func TestGetAllUsers(t *testing.T) {
 	transactionContext.GetStubReturns(chaincodeStub)
 
 	chaincodeStub.GetStateByRangeReturns(iterator, nil)
-	assetTransfer := &chaincode.SmartContract{}
-	assets, err := assetTransfer.GetAllUsers(transactionContext)
+	userprofile := &chaincode.SmartContract{}
+	assets, err := userprofile.GetAllUsers(transactionContext)
 	require.NoError(t, err)
 	require.Equal(t, []*chaincode.UserProfile{asset}, assets)
 
 	iterator.HasNextReturns(true)
 	iterator.NextReturns(nil, fmt.Errorf("failed retrieving next item"))
-	assets, err = assetTransfer.GetAllUsers(transactionContext)
+	assets, err = userprofile.GetAllUsers(transactionContext)
 	require.EqualError(t, err, "failed retrieving next item")
 	require.Nil(t, assets)
 
 	chaincodeStub.GetStateByRangeReturns(nil, fmt.Errorf("failed retrieving all assets"))
-	assets, err = assetTransfer.GetAllUsers(transactionContext)
+	assets, err = userprofile.GetAllUsers(transactionContext)
 	require.EqualError(t, err, "failed retrieving all assets")
 	require.Nil(t, assets)
 }
