@@ -1,0 +1,6 @@
+{
+  "index": { "fields": ["category"] },
+  "ddoc": "indexCategoryDoc",
+  "name": "indexCategory",
+  "type": "json"
+}

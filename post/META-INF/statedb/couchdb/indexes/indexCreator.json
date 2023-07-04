@@ -1,0 +1,6 @@
+{
+  "index": { "fields": ["creator"] },
+  "ddoc": "indexCreatorDoc",
+  "name": "indexCreator",
+  "type": "json"
+}
