@@ -39,7 +39,9 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 		}
 	}
 
-	return nil
+	// return nil
+	usersJson, _ := json.Marshal(users)
+	return ctx.GetStub().SetEvent("InitLedger", usersJson)
 }
 
 // CreateUser creates a new user on the ledger with given details.
@@ -60,7 +62,14 @@ func (s *SmartContract) CreateUser(ctx contractapi.TransactionContextInterface, 
 	}
 	userJSON, _ := json.Marshal(user)
 
-	return ctx.GetStub().PutState(userId, userJSON)
+	// return ctx.GetStub().PutState(userId, userJSON)
+	err = ctx.GetStub().PutState(userId, userJSON)
+	if err != nil {
+		return fmt.Errorf("failed to put to world state: %v", err)
+	}
+
+	userJson, _ := json.Marshal(user)
+	return ctx.GetStub().SetEvent("CreateUser", userJson)
 }
 
 // ReadUser returns the user stored in the world state with given id.
@@ -76,7 +85,8 @@ func (s *SmartContract) ReadUser(ctx contractapi.TransactionContextInterface, us
 	var asset UserProfile
 	json.Unmarshal(userJSON, &asset)
 
-	return &asset, nil
+	// return &asset, nil
+	return &asset, ctx.GetStub().SetEvent("ReadUser", userJSON)
 }
 
 func (s *SmartContract) UpdateUser(ctx contractapi.TransactionContextInterface, userId string, username string, avatar string, signature string) error {
@@ -97,7 +107,13 @@ func (s *SmartContract) UpdateUser(ctx contractapi.TransactionContextInterface, 
 	}
 	userJSON, _ := json.Marshal(user)
 
-	return ctx.GetStub().PutState(userId, userJSON)
+	// return ctx.GetStub().PutState(userId, userJSON)
+	err = ctx.GetStub().PutState(userId, userJSON)
+	if err != nil {
+		return fmt.Errorf("failed to put to world state: %v", err)
+	}
+
+	return ctx.GetStub().SetEvent("UpdateUser", userJSON)
 }
 
 func (s *SmartContract) AssignRole(ctx contractapi.TransactionContextInterface, userId string, role string) error {
@@ -110,7 +126,13 @@ func (s *SmartContract) AssignRole(ctx contractapi.TransactionContextInterface, 
 
 	userJSON, _ := json.Marshal(user)
 
-	return ctx.GetStub().PutState(userId, userJSON)
+	// return ctx.GetStub().PutState(userId, userJSON)
+	err = ctx.GetStub().PutState(userId, userJSON)
+	if err != nil {
+		return fmt.Errorf("failed to put to world state: %v", err)
+	}
+
+	return ctx.GetStub().SetEvent("AssignRole", userJSON)
 }
 
 func (s *SmartContract) RemoveRole(ctx contractapi.TransactionContextInterface, userId string, role string) error {
@@ -128,7 +150,13 @@ func (s *SmartContract) RemoveRole(ctx contractapi.TransactionContextInterface, 
 
 	userJSON, _ := json.Marshal(user)
 
-	return ctx.GetStub().PutState(userId, userJSON)
+	// return ctx.GetStub().PutState(userId, userJSON)
+	err = ctx.GetStub().PutState(userId, userJSON)
+	if err != nil {
+		return fmt.Errorf("failed to put to world state: %v", err)
+	}
+
+	return ctx.GetStub().SetEvent("RemoveRole", userJSON)
 }
 
 func (s *SmartContract) AssignBadge(ctx contractapi.TransactionContextInterface, userId string, badge string) error {
@@ -141,7 +169,13 @@ func (s *SmartContract) AssignBadge(ctx contractapi.TransactionContextInterface,
 
 	userJSON, _ := json.Marshal(user)
 
-	return ctx.GetStub().PutState(userId, userJSON)
+	// return ctx.GetStub().PutState(userId, userJSON)
+	err = ctx.GetStub().PutState(userId, userJSON)
+	if err != nil {
+		return fmt.Errorf("failed to put to world state: %v", err)
+	}
+
+	return ctx.GetStub().SetEvent("AssignBadge", userJSON)
 }
 
 func (s *SmartContract) RemoveBadge(ctx contractapi.TransactionContextInterface, userId string, badge string) error {
@@ -159,7 +193,13 @@ func (s *SmartContract) RemoveBadge(ctx contractapi.TransactionContextInterface,
 
 	userJSON, _ := json.Marshal(user)
 
-	return ctx.GetStub().PutState(userId, userJSON)
+	// return ctx.GetStub().PutState(userId, userJSON)
+	err = ctx.GetStub().PutState(userId, userJSON)
+	if err != nil {
+		return fmt.Errorf("failed to put to world state: %v", err)
+	}
+
+	return ctx.GetStub().SetEvent("RemoveBadge", userJSON)
 }
 
 // UserExists returns true when asset with given ID exists in world state
@@ -192,5 +232,7 @@ func (s *SmartContract) GetAllUsers(ctx contractapi.TransactionContextInterface)
 		assets = append(assets, &asset)
 	}
 
-	return assets, nil
+	// return assets, nil
+	assetsJSON, _ := json.Marshal(assets)
+	return assets, ctx.GetStub().SetEvent("GetAllUsers", assetsJSON)
 }

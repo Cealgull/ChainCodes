@@ -54,6 +54,10 @@ func TestCreateUser(t *testing.T) {
 	err := userprofile.CreateUser(transactionContext, "", "", "", "")
 	require.NoError(t, err)
 
+	chaincodeStub.PutStateReturns(fmt.Errorf("failed inserting key"))
+	err = userprofile.CreateUser(transactionContext, "user1", "", "", "")
+	require.EqualError(t, err, "failed to put to world state: failed inserting key")
+
 	chaincodeStub.GetStateReturns([]byte{}, nil)
 	err = userprofile.CreateUser(transactionContext, "user1", "", "", "")
 	require.EqualError(t, err, "the user user1 already exists")
@@ -102,6 +106,10 @@ func TestUpdateUser(t *testing.T) {
 	err = userprofile.UpdateUser(transactionContext, "", "", "", "")
 	require.NoError(t, err)
 
+	chaincodeStub.PutStateReturns(fmt.Errorf("failed inserting key"))
+	err = userprofile.UpdateUser(transactionContext, "user1", "", "", "")
+	require.EqualError(t, err, "failed to put to world state: failed inserting key")
+
 	chaincodeStub.GetStateReturns(nil, nil)
 	err = userprofile.UpdateUser(transactionContext, "user1", "", "", "")
 	require.EqualError(t, err, "the user user1 does not exist")
@@ -124,6 +132,10 @@ func TestAssignRole(t *testing.T) {
 	userprofile := chaincode.SmartContract{}
 	err = userprofile.AssignRole(transactionContext, "user1", "Admin")
 	require.NoError(t, err)
+
+	chaincodeStub.PutStateReturns(fmt.Errorf("failed inserting key"))
+	err = userprofile.AssignRole(transactionContext, "user1", "")
+	require.EqualError(t, err, "failed to put to world state: failed inserting key")
 
 	chaincodeStub.GetStateReturns(nil, nil)
 	err = userprofile.AssignRole(transactionContext, "user1", "")
@@ -148,6 +160,10 @@ func TestRemoveRole(t *testing.T) {
 	err = userprofile.RemoveRole(transactionContext, "user1", "Admin")
 	require.NoError(t, err)
 
+	chaincodeStub.PutStateReturns(fmt.Errorf("failed inserting key"))
+	err = userprofile.RemoveRole(transactionContext, "user1", "")
+	require.EqualError(t, err, "failed to put to world state: failed inserting key")
+
 	chaincodeStub.GetStateReturns(nil, nil)
 	err = userprofile.RemoveRole(transactionContext, "user1", "")
 	require.EqualError(t, err, "the user user1 does not exist")
@@ -171,6 +187,10 @@ func TestAssignBadge(t *testing.T) {
 	err = userprofile.AssignBadge(transactionContext, "user1", "Admin")
 	require.NoError(t, err)
 
+	chaincodeStub.PutStateReturns(fmt.Errorf("failed inserting key"))
+	err = userprofile.AssignBadge(transactionContext, "user1", "")
+	require.EqualError(t, err, "failed to put to world state: failed inserting key")
+
 	chaincodeStub.GetStateReturns(nil, nil)
 	err = userprofile.AssignBadge(transactionContext, "user1", "")
 	require.EqualError(t, err, "the user user1 does not exist")
@@ -193,6 +213,10 @@ func TestRemoveBadge(t *testing.T) {
 	userprofile := chaincode.SmartContract{}
 	err = userprofile.RemoveBadge(transactionContext, "user1", "Admin")
 	require.NoError(t, err)
+
+	chaincodeStub.PutStateReturns(fmt.Errorf("failed inserting key"))
+	err = userprofile.RemoveBadge(transactionContext, "user1", "")
+	require.EqualError(t, err, "failed to put to world state: failed inserting key")
 
 	chaincodeStub.GetStateReturns(nil, nil)
 	err = userprofile.RemoveBadge(transactionContext, "user1", "")
