@@ -17,6 +17,7 @@ type SmartContract struct {
 type Topic struct {
 	Id         string    `json:"id"`
 	CId        string    `json:"cid"`
+	Title      string    `json:"title"`
 	Creator    string    `json:"creator"`
 	CreateTime time.Time `json:"createTime"`
 	UpdateTime time.Time `json:"updateTime"`
@@ -31,9 +32,9 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 	txntmsp, _ := ctx.GetStub().GetTxTimestamp()
 	timestamp := txntmsp.AsTime()
 	topics := []Topic{
-		{Id: "1", CId: "c1", Creator: "user1", CreateTime: timestamp, UpdateTime: timestamp, Category: "category1", Tags: []string{"tag1", "tag2"}},
-		{Id: "2", CId: "c2", Creator: "user2", CreateTime: timestamp, UpdateTime: timestamp, Category: "category2", Tags: []string{"tag1", "tag2", "tag3"}},
-		{Id: "3", CId: "c3", Creator: "user3", CreateTime: timestamp, UpdateTime: timestamp, Category: "category3", Tags: []string{"tag1", "tag2", "tag3", "tag4"}},
+		{Id: "1", CId: "c1", Title: "title1", Creator: "user1", CreateTime: timestamp, UpdateTime: timestamp, Category: "category1", Tags: []string{"tag1", "tag2"}},
+		{Id: "2", CId: "c2", Title: "title2", Creator: "user2", CreateTime: timestamp, UpdateTime: timestamp, Category: "category2", Tags: []string{"tag1", "tag2", "tag3"}},
+		{Id: "3", CId: "c3", Title: "title3", Creator: "user3", CreateTime: timestamp, UpdateTime: timestamp, Category: "category3", Tags: []string{"tag1", "tag2", "tag3", "tag4"}},
 	}
 
 	for _, topic := range topics {
@@ -63,7 +64,7 @@ func (s *SmartContract) GetSubmittingClientIdentity(ctx contractapi.TransactionC
 }
 
 // CreateTopic creates a topic.
-func (s *SmartContract) CreateTopic(ctx contractapi.TransactionContextInterface, topicId string, cid string, category string, tags []string) error {
+func (s *SmartContract) CreateTopic(ctx contractapi.TransactionContextInterface, topicId string, cid string, title string, category string, tags []string) error {
 	operator, err := s.GetSubmittingClientIdentity(ctx)
 	if err != nil {
 		return err
@@ -82,6 +83,7 @@ func (s *SmartContract) CreateTopic(ctx contractapi.TransactionContextInterface,
 	topic := Topic{
 		Id:         topicId,
 		CId:        cid,
+		Title:      title,
 		Creator:    operator,
 		CreateTime: timestamp,
 		UpdateTime: timestamp,
@@ -120,7 +122,7 @@ func (s *SmartContract) ReadTopic(ctx contractapi.TransactionContextInterface, t
 }
 
 // UpdateTopic updates an existing topic in the world state with provided parameters.
-func (s *SmartContract) UpdateTopic(ctx contractapi.TransactionContextInterface, topicId string, cid string, category string, tags []string) error {
+func (s *SmartContract) UpdateTopic(ctx contractapi.TransactionContextInterface, topicId string, cid string, title string, category string, tags []string) error {
 	topic, err := s.ReadTopic(ctx, topicId)
 	if err != nil {
 		return err
@@ -139,6 +141,7 @@ func (s *SmartContract) UpdateTopic(ctx contractapi.TransactionContextInterface,
 	timestamp := txntmsp.AsTime()
 
 	topic.CId = cid
+	topic.Title = title
 	topic.UpdateTime = timestamp
 	topic.Category = category
 	topic.Tags = tags
@@ -168,6 +171,11 @@ func (s *SmartContract) GetAllTopics(ctx contractapi.TransactionContextInterface
 	}
 
 	return topics, nil
+}
+
+func (s *SmartContract) QueryTopicsByTitle(ctx contractapi.TransactionContextInterface, title string) ([]*Topic, error) {
+	queryString := fmt.Sprintf(`{"selector":{"title":"%s"}}`, title)
+	return getQueryResultForQueryString(ctx, queryString)
 }
 
 func (s *SmartContract) QueryTopicsByCreator(ctx contractapi.TransactionContextInterface, creator string) ([]*Topic, error) {
