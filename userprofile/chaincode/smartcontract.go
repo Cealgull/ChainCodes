@@ -18,8 +18,8 @@ type UserProfile struct {
 	Username   string   `json:"username"`
 	Avatar     string   `json:"avatar"`
 	Signature  string   `json:"signature"`
-	Roles      []string `json:"roles"`
-	Badge      []string `json:"badge"`
+	Roles      []string `json:"roles,omitempty" metadata:"roles,optional" `
+	Badge      []string `json:"badge,omitempty" metadata:"badge,optional" `
 }
 
 // InitLedger adds a base set of users to the ledger

@@ -22,7 +22,7 @@ type Topic struct {
 	CreateTime time.Time `json:"createTime"`
 	UpdateTime time.Time `json:"updateTime"`
 	Category   string    `json:"category"`
-	Tags       []string  `json:"tags"`
+	Tags       []string  `json:"tags,omitempty" metadata:"tags,optional" `
 }
 
 const TimeFormat = "2006-01-02 15:04:05" // deprecated: use time.Time instead of string
