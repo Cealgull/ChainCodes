@@ -1,0 +1,246 @@
+{
+  "namespace": "default",
+  "name": "topic",
+  "description": "Spec interface for the topic chaincode",
+  "version": "1.0",
+  "methods": [
+    {
+      "name": "InitLedger",
+      "pathname": "",
+      "description": "",
+      "params": [],
+      "returns": []
+    },
+    {
+      "name": "GetSubmittingClientIdentity",
+      "pathname": "",
+      "description": "",
+      "params": [],
+      "returns": [
+        {
+          "name": "",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CreateTopic",
+      "pathname": "",
+      "description": "",
+      "params": [
+        {
+          "name": "topicId",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "cid",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "title",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "category",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "tags",
+          "schema": {
+            "type": "array",
+            "details": {
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "returns": []
+    },
+    {
+      "name": "ReadTopic",
+      "pathname": "",
+      "description": "",
+      "params": [
+        {
+          "name": "topicId",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "name": "",
+          "schema": {
+            "type": "object"
+          }
+        }
+      ]
+    },
+    {
+      "name": "UpdateTopic",
+      "pathname": "",
+      "description": "",
+      "params": [
+        {
+          "name": "topicId",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "cid",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "title",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "category",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "tags",
+          "schema": {
+            "type": "array",
+            "details": {
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "returns": []
+    },
+    {
+      "name": "GetAllTopics",
+      "pathname": "",
+      "description": "",
+      "params": [],
+      "returns": [
+        {
+          "name": "",
+          "schema": {
+            "type": "array",
+            "details": {
+              "type": "object"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "QueryTopicsByTitle",
+      "pathname": "",
+      "description": "",
+      "params": [
+        {
+          "name": "title",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "name": "",
+          "schema": {
+            "type": "array",
+            "details": {
+              "type": "object"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "QueryTopicsByCreator",
+      "pathname": "",
+      "description": "",
+      "params": [
+        {
+          "name": "creator",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "name": "",
+          "schema": {
+            "type": "array",
+            "details": {
+              "type": "object"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "QueryTopicsByCategory",
+      "pathname": "",
+      "description": "",
+      "params": [
+        {
+          "name": "category",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "name": "",
+          "schema": {
+            "type": "array",
+            "details": {
+              "type": "object"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "QueryTopicsByTag",
+      "pathname": "",
+      "description": "",
+      "params": [
+        {
+          "name": "tag",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "name": "",
+          "schema": {
+            "type": "array",
+            "details": {
+              "type": "object"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "events": []
+}
