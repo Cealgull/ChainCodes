@@ -65,12 +65,7 @@ func (s *SmartContract) GetSubmittingClientIdentity(ctx contractapi.TransactionC
 }
 
 // CreateTopic creates a topic.
-func (s *SmartContract) CreateTopic(ctx contractapi.TransactionContextInterface, topicId string, cid string, title string, category string, tags []string, images []string) error {
-	operator, err := s.GetSubmittingClientIdentity(ctx)
-	if err != nil {
-		return err
-	}
-
+func (s *SmartContract) CreateTopic(ctx contractapi.TransactionContextInterface, topicId string, cid string, title string, operator string, category string, tags []string, images []string) error {
 	exists, err := s.TopicExists(ctx, topicId)
 	if err != nil {
 		return err
@@ -124,13 +119,8 @@ func (s *SmartContract) ReadTopic(ctx contractapi.TransactionContextInterface, t
 }
 
 // UpdateTopic updates an existing topic in the world state with provided parameters.
-func (s *SmartContract) UpdateTopic(ctx contractapi.TransactionContextInterface, topicId string, cid string, title string, category string, tags []string, images []string) error {
+func (s *SmartContract) UpdateTopic(ctx contractapi.TransactionContextInterface, topicId string, cid string, title string, operator string, category string, tags []string, images []string) error {
 	topic, err := s.ReadTopic(ctx, topicId)
-	if err != nil {
-		return err
-	}
-
-	operator, err := s.GetSubmittingClientIdentity(ctx)
 	if err != nil {
 		return err
 	}

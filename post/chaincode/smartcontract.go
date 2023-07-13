@@ -64,12 +64,7 @@ func (s *SmartContract) GetSubmittingClientIdentity(ctx contractapi.TransactionC
 }
 
 // CreatePost creates a post.
-func (s *SmartContract) CreatePost(ctx contractapi.TransactionContextInterface, postId string, cid string, belongTo string, replyTo string, images []string) error {
-	operator, err := s.GetSubmittingClientIdentity(ctx)
-	if err != nil {
-		return err
-	}
-
+func (s *SmartContract) CreatePost(ctx contractapi.TransactionContextInterface, postId string, cid string, operator string, belongTo string, replyTo string, images []string) error {
 	exists, err := s.PostExists(ctx, postId)
 	if err != nil {
 		return err
@@ -122,13 +117,8 @@ func (s *SmartContract) ReadPost(ctx contractapi.TransactionContextInterface, po
 }
 
 // UpdatePost updates an existing post in the world state with provided parameters.
-func (s *SmartContract) UpdatePost(ctx contractapi.TransactionContextInterface, postId string, cid string, images []string) error {
+func (s *SmartContract) UpdatePost(ctx contractapi.TransactionContextInterface, postId string, cid string, operator string, images []string) error {
 	post, err := s.ReadPost(ctx, postId)
-	if err != nil {
-		return err
-	}
-
-	operator, err := s.GetSubmittingClientIdentity(ctx)
 	if err != nil {
 		return err
 	}
