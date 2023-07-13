@@ -49,6 +49,12 @@
           }
         },
         {
+          "name": "operator",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
           "name": "category",
           "schema": {
             "type": "string"
@@ -56,6 +62,15 @@
         },
         {
           "name": "tags",
+          "schema": {
+            "type": "array",
+            "details": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "name": "images",
           "schema": {
             "type": "array",
             "details": {
@@ -111,6 +126,12 @@
           }
         },
         {
+          "name": "operator",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
           "name": "category",
           "schema": {
             "type": "string"
@@ -118,6 +139,15 @@
         },
         {
           "name": "tags",
+          "schema": {
+            "type": "array",
+            "details": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "name": "images",
           "schema": {
             "type": "array",
             "details": {
