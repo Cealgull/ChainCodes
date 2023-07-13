@@ -148,6 +148,22 @@ func (s *SmartContract) UpdateTopic(ctx contractapi.TransactionContextInterface,
 	return ctx.GetStub().PutState(topicId, topicJSON)
 }
 
+// Renew topic update time
+func (s *SmartContract) RenewTopicUpdateTime(ctx contractapi.TransactionContextInterface, topicId string) error {
+	topic, err := s.ReadTopic(ctx, topicId)
+	if err != nil {
+		return err
+	}
+
+	txntmsp, _ := ctx.GetStub().GetTxTimestamp()
+	timestamp := txntmsp.AsTime()
+
+	topic.UpdateTime = timestamp
+	topicJSON, _ := json.Marshal(topic)
+
+	return ctx.GetStub().PutState(topicId, topicJSON)
+}
+
 // GetAllTopics returns all topics found in world state
 func (s *SmartContract) GetAllTopics(ctx contractapi.TransactionContextInterface) ([]*Topic, error) {
 	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")

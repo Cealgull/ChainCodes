@@ -143,6 +143,25 @@ func TestUpdateTopic(t *testing.T) {
 	require.EqualError(t, err, "the topic 1 can only be updated by its creator")
 }
 
+func TestRenewTopicUpdateTime(t *testing.T) {
+	transactionContext, chaincodeStub := prepMocksAsOrg1()
+	topic := chaincode.SmartContract{}
+
+	err := topic.RenewTopicUpdateTime(transactionContext, "1")
+	require.EqualError(t, err, "the topic 1 does not exist")
+
+	chaincodeStub.GetStateReturns([]byte{}, fmt.Errorf("failure"))
+	err = topic.RenewTopicUpdateTime(transactionContext, "1")
+	require.EqualError(t, err, "failed to read from world state: failure")
+
+	tmpTopic := &chaincode.Topic{Id: "1", Creator: "1"}
+	bytes, _ := json.Marshal(tmpTopic)
+	chaincodeStub.GetStateReturns(bytes, nil)
+
+	err = topic.RenewTopicUpdateTime(transactionContext, "1")
+	require.NoError(t, err)
+}
+
 func TestGetAllTopics(t *testing.T) {
 	asset := &chaincode.Topic{Id: "user1"}
 	bytes, err := json.Marshal(asset)
