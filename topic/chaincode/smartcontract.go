@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
@@ -65,7 +66,7 @@ func (s *SmartContract) GetSubmittingClientIdentity(ctx contractapi.TransactionC
 }
 
 // CreateTopic creates a topic.
-func (s *SmartContract) CreateTopic(ctx contractapi.TransactionContextInterface, topicId string, cid string, title string, operator string, category string, tags []string, images []string) error {
+func (s *SmartContract) CreateTopic(ctx contractapi.TransactionContextInterface, topicId string, cid string, title string, operator string, category string, tagsString string, imagesString string) error {
 	exists, err := s.TopicExists(ctx, topicId)
 	if err != nil {
 		return err
@@ -76,6 +77,8 @@ func (s *SmartContract) CreateTopic(ctx contractapi.TransactionContextInterface,
 
 	txntmsp, _ := ctx.GetStub().GetTxTimestamp()
 	timestamp := txntmsp.AsTime()
+	tags := strings.Split(tagsString, "-")
+	images := strings.Split(imagesString, "-")
 	topic := Topic{
 		Id:         topicId,
 		CId:        cid,
@@ -119,7 +122,7 @@ func (s *SmartContract) ReadTopic(ctx contractapi.TransactionContextInterface, t
 }
 
 // UpdateTopic updates an existing topic in the world state with provided parameters.
-func (s *SmartContract) UpdateTopic(ctx contractapi.TransactionContextInterface, topicId string, cid string, title string, operator string, category string, tags []string, images []string) error {
+func (s *SmartContract) UpdateTopic(ctx contractapi.TransactionContextInterface, topicId string, cid string, title string, operator string, category string, tagsString string, imagesString string) error {
 	topic, err := s.ReadTopic(ctx, topicId)
 	if err != nil {
 		return err
@@ -136,7 +139,9 @@ func (s *SmartContract) UpdateTopic(ctx contractapi.TransactionContextInterface,
 	topic.Title = title
 	topic.UpdateTime = timestamp
 	topic.Category = category
+	tags := strings.Split(tagsString, "-")
 	topic.Tags = tags
+	images := strings.Split(imagesString, "-")
 	topic.Images = images
 	topicJSON, _ := json.Marshal(topic)
 

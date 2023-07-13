@@ -63,19 +63,13 @@
         {
           "name": "tags",
           "schema": {
-            "type": "array",
-            "details": {
-              "type": "string"
-            }
+            "type": "string"
           }
         },
         {
           "name": "images",
           "schema": {
-            "type": "array",
-            "details": {
-              "type": "string"
-            }
+            "type": "string"
           }
         }
       ],
@@ -140,19 +134,13 @@
         {
           "name": "tags",
           "schema": {
-            "type": "array",
-            "details": {
-              "type": "string"
-            }
+            "type": "string"
           }
         },
         {
           "name": "images",
           "schema": {
-            "type": "array",
-            "details": {
-              "type": "string"
-            }
+            "type": "string"
           }
         }
       ],

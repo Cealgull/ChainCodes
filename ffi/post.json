@@ -63,10 +63,7 @@
         {
           "name": "images",
           "schema": {
-            "type": "array",
-            "details": {
-              "type": "string"
-            }
+            "type": "string"
           }
         }
       ],
@@ -117,24 +114,9 @@
           }
         },
         {
-          "name": "belongTo",
-          "schema": {
-            "type": "string"
-          }
-        },
-        {
-          "name": "replyTo",
-          "schema": {
-            "type": "string"
-          }
-        },
-        {
           "name": "images",
           "schema": {
-            "type": "array",
-            "details": {
-              "type": "string"
-            }
+            "type": "string"
           }
         }
       ],

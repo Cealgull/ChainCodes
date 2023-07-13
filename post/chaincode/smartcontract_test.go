@@ -82,11 +82,11 @@ func TestCreatePost(t *testing.T) {
 	transactionContext, chaincodeStub := prepMocksAsOrg1()
 	Post := chaincode.SmartContract{}
 
-	err := Post.CreatePost(transactionContext, "1", "1", "1", "1", "1", []string(nil))
+	err := Post.CreatePost(transactionContext, "1", "1", "1", "1", "1", "1-1")
 	require.NoError(t, err)
 
 	chaincodeStub.GetStateReturns([]byte{}, fmt.Errorf("failure"))
-	err = Post.CreatePost(transactionContext, "1", "1", "1", "1", "1", []string(nil))
+	err = Post.CreatePost(transactionContext, "1", "1", "1", "1", "1", "1-1")
 	require.EqualError(t, err, "failed to read from world state: failure")
 
 	expectedPost := &chaincode.Post{Id: "1"}
@@ -94,7 +94,7 @@ func TestCreatePost(t *testing.T) {
 	require.NoError(t, err)
 
 	chaincodeStub.GetStateReturns(bytes, nil)
-	err = Post.CreatePost(transactionContext, "1", "1", "1", "1", "1", []string(nil))
+	err = Post.CreatePost(transactionContext, "1", "1", "1", "1", "1", "1-1")
 	require.EqualError(t, err, "the post 1 already exists")
 }
 
@@ -121,25 +121,25 @@ func TestUpdatePost(t *testing.T) {
 	transactionContext, chaincodeStub := prepMocksAsOrg1()
 	post := chaincode.SmartContract{}
 
-	err := post.UpdatePost(transactionContext, "1", "1", "1", []string(nil))
+	err := post.UpdatePost(transactionContext, "1", "1", "1", "1-1")
 	require.EqualError(t, err, "the post 1 does not exist")
 
 	chaincodeStub.GetStateReturns([]byte{}, fmt.Errorf("failure"))
-	err = post.UpdatePost(transactionContext, "1", "1", "1", []string(nil))
+	err = post.UpdatePost(transactionContext, "1", "1", "1", "1-1")
 	require.EqualError(t, err, "failed to read from world state: failure")
 
 	tmpPost := &chaincode.Post{Id: "1", Creator: "1"}
 	bytes, _ := json.Marshal(tmpPost)
 	chaincodeStub.GetStateReturns(bytes, nil)
 
-	err = post.UpdatePost(transactionContext, "1", "1", "1", []string(nil))
+	err = post.UpdatePost(transactionContext, "1", "1", "1", "1-1")
 	require.NoError(t, err)
 
 	tmpPost = &chaincode.Post{Id: "1", Creator: myOrg2Clientid}
 	bytes, _ = json.Marshal(tmpPost)
 	chaincodeStub.GetStateReturns(bytes, nil)
 
-	err = post.UpdatePost(transactionContext, "1", "1", "1", []string(nil))
+	err = post.UpdatePost(transactionContext, "1", "1", "1", "1-1")
 	require.EqualError(t, err, "the post 1 can only be updated by its creator")
 }
 

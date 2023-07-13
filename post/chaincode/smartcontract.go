@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
@@ -64,7 +65,7 @@ func (s *SmartContract) GetSubmittingClientIdentity(ctx contractapi.TransactionC
 }
 
 // CreatePost creates a post.
-func (s *SmartContract) CreatePost(ctx contractapi.TransactionContextInterface, postId string, cid string, operator string, belongTo string, replyTo string, images []string) error {
+func (s *SmartContract) CreatePost(ctx contractapi.TransactionContextInterface, postId string, cid string, operator string, belongTo string, replyTo string, imagesString string) error {
 	exists, err := s.PostExists(ctx, postId)
 	if err != nil {
 		return err
@@ -75,6 +76,7 @@ func (s *SmartContract) CreatePost(ctx contractapi.TransactionContextInterface, 
 
 	txntmsp, _ := ctx.GetStub().GetTxTimestamp()
 	timestamp := txntmsp.AsTime()
+	images := strings.Split(imagesString, "-")
 	post := Post{
 		Id:         postId,
 		CId:        cid,
@@ -117,7 +119,7 @@ func (s *SmartContract) ReadPost(ctx contractapi.TransactionContextInterface, po
 }
 
 // UpdatePost updates an existing post in the world state with provided parameters.
-func (s *SmartContract) UpdatePost(ctx contractapi.TransactionContextInterface, postId string, cid string, operator string, images []string) error {
+func (s *SmartContract) UpdatePost(ctx contractapi.TransactionContextInterface, postId string, cid string, operator string, imagesString string) error {
 	post, err := s.ReadPost(ctx, postId)
 	if err != nil {
 		return err
@@ -132,6 +134,7 @@ func (s *SmartContract) UpdatePost(ctx contractapi.TransactionContextInterface, 
 
 	post.CId = cid
 	post.UpdateTime = timestamp
+	images := strings.Split(imagesString, "-")
 	post.Images = images
 	postJSON, _ := json.Marshal(post)
 
