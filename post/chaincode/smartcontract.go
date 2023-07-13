@@ -21,7 +21,8 @@ type Post struct {
 	CreateTime time.Time `json:"createTime"`
 	UpdateTime time.Time `json:"updateTime"`
 	BelongTo   string    `json:"belongTo"`
-	ReplyTo    string    `json:"replyTo"`
+	ReplyTo    string    `json:"replyTo,omitempty" metadata:"replyTo,optional" `
+	Images     []string  `json:"images,omitempty" metadata:"images,optional" `
 }
 
 const TimeFormat = "2006-01-02 15:04:05" // deprecated: use time.Time instead of string
@@ -31,8 +32,8 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 	txntmsp, _ := ctx.GetStub().GetTxTimestamp()
 	timestamp := txntmsp.AsTime()
 	posts := []Post{
-		{Id: "1", CId: "c1", Creator: "user1", CreateTime: timestamp, UpdateTime: timestamp, BelongTo: "1", ReplyTo: "1"},
-		{Id: "2", CId: "c2", Creator: "user2", CreateTime: timestamp, UpdateTime: timestamp, BelongTo: "2", ReplyTo: "2"},
+		{Id: "1", CId: "c1", Creator: "user1", CreateTime: timestamp, UpdateTime: timestamp, BelongTo: "1", ReplyTo: "1", Images: []string{"1.jpg", "2.jpg"}},
+		{Id: "2", CId: "c2", Creator: "user2", CreateTime: timestamp, UpdateTime: timestamp, BelongTo: "2", ReplyTo: "2", Images: []string{"3.jpg", "4.jpg"}},
 		{Id: "3", CId: "c3", Creator: "user3", CreateTime: timestamp, UpdateTime: timestamp, BelongTo: "3", ReplyTo: "3"},
 	}
 
@@ -63,7 +64,7 @@ func (s *SmartContract) GetSubmittingClientIdentity(ctx contractapi.TransactionC
 }
 
 // CreatePost creates a post.
-func (s *SmartContract) CreatePost(ctx contractapi.TransactionContextInterface, postId string, cid string, belongTo string, replyTo string) error {
+func (s *SmartContract) CreatePost(ctx contractapi.TransactionContextInterface, postId string, cid string, belongTo string, replyTo string, images []string) error {
 	operator, err := s.GetSubmittingClientIdentity(ctx)
 	if err != nil {
 		return err
@@ -87,6 +88,7 @@ func (s *SmartContract) CreatePost(ctx contractapi.TransactionContextInterface, 
 		UpdateTime: timestamp,
 		BelongTo:   belongTo,
 		ReplyTo:    replyTo,
+		Images:     images,
 	}
 
 	postJSON, _ := json.Marshal(post)
@@ -120,7 +122,7 @@ func (s *SmartContract) ReadPost(ctx contractapi.TransactionContextInterface, po
 }
 
 // UpdatePost updates an existing post in the world state with provided parameters.
-func (s *SmartContract) UpdatePost(ctx contractapi.TransactionContextInterface, postId string, cid string) error {
+func (s *SmartContract) UpdatePost(ctx contractapi.TransactionContextInterface, postId string, cid string, images []string) error {
 	post, err := s.ReadPost(ctx, postId)
 	if err != nil {
 		return err
@@ -140,6 +142,7 @@ func (s *SmartContract) UpdatePost(ctx contractapi.TransactionContextInterface, 
 
 	post.CId = cid
 	post.UpdateTime = timestamp
+	post.Images = images
 	postJSON, _ := json.Marshal(post)
 
 	return ctx.GetStub().PutState(postId, postJSON)

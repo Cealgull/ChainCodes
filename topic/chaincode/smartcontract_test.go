@@ -82,11 +82,11 @@ func TestCreateTopic(t *testing.T) {
 	transactionContext, chaincodeStub := prepMocksAsOrg1()
 	topic := chaincode.SmartContract{}
 
-	err := topic.CreateTopic(transactionContext, "1", "1", "1", "1", []string{"1", "2"})
+	err := topic.CreateTopic(transactionContext, "1", "1", "1", "1", []string{"1", "2"}, []string{"1", "2"})
 	require.NoError(t, err)
 
 	chaincodeStub.GetStateReturns([]byte{}, fmt.Errorf("failure"))
-	err = topic.CreateTopic(transactionContext, "1", "1", "1", "1", []string{"1", "2"})
+	err = topic.CreateTopic(transactionContext, "1", "1", "1", "1", []string{"1", "2"}, []string{"1", "2"})
 	require.EqualError(t, err, "failed to read from world state: failure")
 
 	expectedTopic := &chaincode.Topic{Id: "1"}
@@ -94,11 +94,11 @@ func TestCreateTopic(t *testing.T) {
 	require.NoError(t, err)
 
 	chaincodeStub.GetStateReturns(bytes, nil)
-	err = topic.CreateTopic(transactionContext, "1", "1", "1", "1", []string{"1", "2"})
+	err = topic.CreateTopic(transactionContext, "1", "1", "1", "1", []string{"1", "2"}, []string{"1", "2"})
 	require.EqualError(t, err, "the topic 1 already exists")
 
 	transactionContext, _ = prepMocksIllegalId()
-	err = topic.CreateTopic(transactionContext, "1", "1", "1", "1", []string{"1", "2"})
+	err = topic.CreateTopic(transactionContext, "1", "1", "1", "1", []string{"1", "2"}, []string{"1", "2"})
 	require.EqualError(t, err, "failed to read clientID: failure")
 }
 
@@ -125,25 +125,25 @@ func TestUpdateTopic(t *testing.T) {
 	transactionContext, chaincodeStub := prepMocksAsOrg1()
 	topic := chaincode.SmartContract{}
 
-	err := topic.UpdateTopic(transactionContext, "1", "1", "1", "1", []string{"1", "2"})
+	err := topic.UpdateTopic(transactionContext, "1", "1", "1", "1", []string{"1", "2"}, []string{"1", "2"})
 	require.EqualError(t, err, "the topic 1 does not exist")
 
 	chaincodeStub.GetStateReturns([]byte{}, fmt.Errorf("failure"))
-	err = topic.UpdateTopic(transactionContext, "1", "1", "1", "1", []string{"1", "2"})
+	err = topic.UpdateTopic(transactionContext, "1", "1", "1", "1", []string{"1", "2"}, []string{"1", "2"})
 	require.EqualError(t, err, "failed to read from world state: failure")
 
 	tmpTopic := &chaincode.Topic{Id: "1", Creator: myOrg1Clientid}
 	bytes, _ := json.Marshal(tmpTopic)
 	chaincodeStub.GetStateReturns(bytes, nil)
 
-	err = topic.UpdateTopic(transactionContext, "1", "1", "1", "1", []string{"1", "2"})
+	err = topic.UpdateTopic(transactionContext, "1", "1", "1", "1", []string{"1", "2"}, []string{"1", "2"})
 	require.NoError(t, err)
 
 	tmpTopic = &chaincode.Topic{Id: "1", Creator: myOrg2Clientid}
 	bytes, _ = json.Marshal(tmpTopic)
 	chaincodeStub.GetStateReturns(bytes, nil)
 
-	err = topic.UpdateTopic(transactionContext, "1", "1", "1", "1", []string{"1", "2"})
+	err = topic.UpdateTopic(transactionContext, "1", "1", "1", "1", []string{"1", "2"}, []string{"1", "2"})
 	require.EqualError(t, err, "the topic 1 can only be updated by its creator")
 
 	transactionContext, chaincodeStub = prepMocksIllegalId()
@@ -151,7 +151,7 @@ func TestUpdateTopic(t *testing.T) {
 	bytes, _ = json.Marshal(tmpTopic)
 	chaincodeStub.GetStateReturns(bytes, nil)
 
-	err = topic.UpdateTopic(transactionContext, "1", "1", "1", "1", []string{"1", "2"})
+	err = topic.UpdateTopic(transactionContext, "1", "1", "1", "1", []string{"1", "2"}, []string{"1", "2"})
 	require.EqualError(t, err, "failed to read clientID: failure")
 }
 

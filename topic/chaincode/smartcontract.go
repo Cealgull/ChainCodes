@@ -23,6 +23,7 @@ type Topic struct {
 	UpdateTime time.Time `json:"updateTime"`
 	Category   string    `json:"category"`
 	Tags       []string  `json:"tags,omitempty" metadata:"tags,optional" `
+	Images     []string  `json:"images,omitempty" metadata:"images,optional" `
 }
 
 const TimeFormat = "2006-01-02 15:04:05" // deprecated: use time.Time instead of string
@@ -32,8 +33,8 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 	txntmsp, _ := ctx.GetStub().GetTxTimestamp()
 	timestamp := txntmsp.AsTime()
 	topics := []Topic{
-		{Id: "1", CId: "c1", Title: "title1", Creator: "user1", CreateTime: timestamp, UpdateTime: timestamp, Category: "category1", Tags: []string{"tag1", "tag2"}},
-		{Id: "2", CId: "c2", Title: "title2", Creator: "user2", CreateTime: timestamp, UpdateTime: timestamp, Category: "category2", Tags: []string{"tag1", "tag2", "tag3"}},
+		{Id: "1", CId: "c1", Title: "title1", Creator: "user1", CreateTime: timestamp, UpdateTime: timestamp, Category: "category1", Tags: []string{"tag1", "tag2"}, Images: []string{"image1", "image2", "image3"}},
+		{Id: "2", CId: "c2", Title: "title2", Creator: "user2", CreateTime: timestamp, UpdateTime: timestamp, Category: "category2", Tags: []string{"tag1", "tag2", "tag3"}, Images: []string{"image1", "image2"}},
 		{Id: "3", CId: "c3", Title: "title3", Creator: "user3", CreateTime: timestamp, UpdateTime: timestamp, Category: "category3", Tags: []string{"tag1", "tag2", "tag3", "tag4"}},
 	}
 
@@ -64,7 +65,7 @@ func (s *SmartContract) GetSubmittingClientIdentity(ctx contractapi.TransactionC
 }
 
 // CreateTopic creates a topic.
-func (s *SmartContract) CreateTopic(ctx contractapi.TransactionContextInterface, topicId string, cid string, title string, category string, tags []string) error {
+func (s *SmartContract) CreateTopic(ctx contractapi.TransactionContextInterface, topicId string, cid string, title string, category string, tags []string, images []string) error {
 	operator, err := s.GetSubmittingClientIdentity(ctx)
 	if err != nil {
 		return err
@@ -89,6 +90,7 @@ func (s *SmartContract) CreateTopic(ctx contractapi.TransactionContextInterface,
 		UpdateTime: timestamp,
 		Category:   category,
 		Tags:       tags,
+		Images:     images,
 	}
 
 	topicJSON, _ := json.Marshal(topic)
@@ -122,7 +124,7 @@ func (s *SmartContract) ReadTopic(ctx contractapi.TransactionContextInterface, t
 }
 
 // UpdateTopic updates an existing topic in the world state with provided parameters.
-func (s *SmartContract) UpdateTopic(ctx contractapi.TransactionContextInterface, topicId string, cid string, title string, category string, tags []string) error {
+func (s *SmartContract) UpdateTopic(ctx contractapi.TransactionContextInterface, topicId string, cid string, title string, category string, tags []string, images []string) error {
 	topic, err := s.ReadTopic(ctx, topicId)
 	if err != nil {
 		return err
@@ -145,6 +147,7 @@ func (s *SmartContract) UpdateTopic(ctx contractapi.TransactionContextInterface,
 	topic.UpdateTime = timestamp
 	topic.Category = category
 	topic.Tags = tags
+	topic.Images = images
 	topicJSON, _ := json.Marshal(topic)
 
 	return ctx.GetStub().PutState(topicId, topicJSON)
