@@ -147,6 +147,20 @@
       "returns": []
     },
     {
+      "name": "RenewTopicUpdateTime",
+      "pathname": "",
+      "description": "",
+      "params": [
+        {
+          "name": "topicId",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "returns": []
+    },
+    {
       "name": "GetAllTopics",
       "pathname": "",
       "description": "",
