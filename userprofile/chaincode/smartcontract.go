@@ -2,7 +2,9 @@ package chaincode
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"reflect"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
@@ -13,57 +15,43 @@ type SmartContract struct {
 }
 
 // golang keeps the order when marshal to json but doesn't order automatically
-type UserProfile struct {
-	IdentityId string   `json:"identityId"`
-	Username   string   `json:"username"`
-	Avatar     string   `json:"avatar"`
-	Signature  string   `json:"signature"`
-	Roles      []string `json:"roles,omitempty" metadata:"roles,optional" `
-	Badge      []string `json:"badge,omitempty" metadata:"badge,optional" `
-}
+type Profile struct {
+	Username  string `json:"username"`
+	Wallet    string `json:"wallet"`
+	Avatar    string `json:"avatar"`
+	Signature string `json:"signature"`
+	Muted     bool   `json:"muted"`
+	Banned    bool   `json:"banned"`
 
-// InitLedger adds a base set of users to the ledger
-func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
-	users := []UserProfile{
-		{IdentityId: "user1", Username: "clever1", Avatar: "avatar1", Signature: "signature1", Roles: []string{"role1", "role2"}, Badge: []string{"badge1", "badge2"}},
-		{IdentityId: "user2", Username: "clever2", Avatar: "avatar2", Signature: "signature2", Roles: []string{"role1", "role2"}, Badge: []string{"badge1", "badge2"}},
-		{IdentityId: "user3", Username: "clever3", Avatar: "avatar3", Signature: "signature3", Roles: []string{"role1", "role2"}, Badge: []string{"badge1", "badge2"}},
-	}
+	Balance     int  `json:"balance"`
+	Credibility uint `json:"credibility"`
 
-	for _, user := range users {
-		assetJSON, _ := json.Marshal(user)
-
-		err := ctx.GetStub().PutState(user.IdentityId, assetJSON)
-		if err != nil {
-			return fmt.Errorf("failed to put to world state. %v", err)
-		}
-	}
-
-	// return nil
-	usersJson, _ := json.Marshal(users)
-	return ctx.GetStub().SetEvent("InitLedger", usersJson)
+	ActiveRole     uint   `json:"activeRole"`
+	RolesAssigned  []uint `json:"rolesAssigned"`
+	ActiveBadge    uint   `json:"activeBadge"`
+	BadgesReceived []uint `json:"badgesReceived"`
 }
 
 // CreateUser creates a new user on the ledger with given details.
-func (s *SmartContract) CreateUser(ctx contractapi.TransactionContextInterface, userId string, username string, avatar string, signature string) error {
-	exists, err := s.UserExists(ctx, userId)
+func (s *SmartContract) CreateUser(ctx contractapi.TransactionContextInterface, payload string) error {
+
+  user := Profile{}
+
+	err := json.Unmarshal([]byte(payload), &user)
+
 	if err != nil {
 		return err
 	}
-	if exists {
-		return fmt.Errorf("the user %s already exists", userId)
-	}
 
-	user := UserProfile{
-		IdentityId: userId,
-		Username:   username,
-		Avatar:     avatar,
-		Signature:  signature,
+	exists, err := s.UserExists(ctx, user.Wallet)
+
+	if exists {
+		return fmt.Errorf("the user wallet %s already exists", user.Wallet)
 	}
-	userJSON, _ := json.Marshal(user)
 
 	// return ctx.GetStub().PutState(userId, userJSON)
-	err = ctx.GetStub().PutState(userId, userJSON)
+	err = ctx.GetStub().PutState(user.Wallet, []byte(payload))
+
 	if err != nil {
 		return fmt.Errorf("failed to put to world state: %v", err)
 	}
@@ -73,61 +61,81 @@ func (s *SmartContract) CreateUser(ctx contractapi.TransactionContextInterface, 
 }
 
 // ReadUser returns the user stored in the world state with given id.
-func (s *SmartContract) ReadUser(ctx contractapi.TransactionContextInterface, userId string) (*UserProfile, error) {
-	userJSON, err := ctx.GetStub().GetState(userId)
+func (s *SmartContract) ReadUser(ctx contractapi.TransactionContextInterface, wallet string) (*Profile, error) {
+	userJSON, err := ctx.GetStub().GetState(wallet)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read from world state: %v", err)
 	}
 	if userJSON == nil {
-		return nil, fmt.Errorf("the user %s does not exist", userId)
+		return nil, fmt.Errorf("the user %s does not exist", wallet)
 	}
 
-	var asset UserProfile
+	var asset Profile
+
 	json.Unmarshal(userJSON, &asset)
 
-	// return &asset, nil
-	return &asset, ctx.GetStub().SetEvent("ReadUser", userJSON)
+	return &asset, nil
 }
 
-func (s *SmartContract) UpdateUser(ctx contractapi.TransactionContextInterface, userId string, username string, avatar string, signature string) error {
-	exists, err := s.UserExists(ctx, userId)
+func (s *SmartContract) UpdateUser(ctx contractapi.TransactionContextInterface, payload string) error {
+
+	next := Profile{}
+
+	err := json.Unmarshal([]byte(payload), &next)
+
 	if err != nil {
 		return err
 	}
+
+	if next.Wallet == "" {
+		return errors.New("wallet is required for user updating")
+	}
+
+	exists, err := s.UserExists(ctx, next.Wallet)
+
 	if !exists {
-		return fmt.Errorf("the user %s does not exist", userId)
+		return fmt.Errorf("the user %s does not exist", next.Wallet)
+	}
+
+	prev, _ := s.ReadUser(ctx, next.Wallet)
+
+	x := reflect.ValueOf(&next).Elem()
+	y := reflect.ValueOf(prev).Elem()
+
+	// use reflection package to dynamically update non-zero value
+	for i := 0; i < x.NumField(); i++ {
+		name := x.Type().Field(i).Name
+		yf := y.FieldByName(name)
+		xf := x.FieldByName(name)
+		if name != "Wallet" && yf.CanSet() && !xf.IsZero() {
+			yf.Set(xf)
+		}
 	}
 
 	// overwriting original user with new user
-	user := UserProfile{
-		IdentityId: userId,
-		Username:   username,
-		Avatar:     avatar,
-		Signature:  signature,
-	}
-	userJSON, _ := json.Marshal(user)
 
-	// return ctx.GetStub().PutState(userId, userJSON)
-	err = ctx.GetStub().PutState(userId, userJSON)
+	err = ctx.GetStub().PutState(prev.Wallet, []byte(payload))
+
 	if err != nil {
 		return fmt.Errorf("failed to put to world state: %v", err)
 	}
 
-	return ctx.GetStub().SetEvent("UpdateUser", userJSON)
+	return ctx.GetStub().SetEvent("UpdateUser", []byte(payload))
 }
 
-func (s *SmartContract) AssignRole(ctx contractapi.TransactionContextInterface, userId string, role string) error {
-	user, err := s.ReadUser(ctx, userId)
+func (s *SmartContract) AssignRole(ctx contractapi.TransactionContextInterface, wallet string, role uint) error {
+
+	user, err := s.ReadUser(ctx, wallet)
 	if err != nil {
 		return err
 	}
 
-	user.Roles = append(user.Roles, role)
+	user.RolesAssigned = append(user.RolesAssigned, role)
 
 	userJSON, _ := json.Marshal(user)
 
-	// return ctx.GetStub().PutState(userId, userJSON)
-	err = ctx.GetStub().PutState(userId, userJSON)
+	err = ctx.GetStub().PutState(wallet, userJSON)
+
 	if err != nil {
 		return fmt.Errorf("failed to put to world state: %v", err)
 	}
@@ -135,15 +143,17 @@ func (s *SmartContract) AssignRole(ctx contractapi.TransactionContextInterface, 
 	return ctx.GetStub().SetEvent("AssignRole", userJSON)
 }
 
-func (s *SmartContract) RemoveRole(ctx contractapi.TransactionContextInterface, userId string, role string) error {
-	user, err := s.ReadUser(ctx, userId)
+func (s *SmartContract) RemoveRole(ctx contractapi.TransactionContextInterface, wallet string, role uint) error {
+
+	user, err := s.ReadUser(ctx, wallet)
+
 	if err != nil {
 		return err
 	}
 
-	for i, r := range user.Roles {
+	for i, r := range user.RolesAssigned {
 		if r == role {
-			user.Roles = append(user.Roles[:i], user.Roles[i+1:]...)
+			user.RolesAssigned = append(user.RolesAssigned[:i], user.RolesAssigned[i+1:]...)
 			break
 		}
 	}
@@ -151,26 +161,29 @@ func (s *SmartContract) RemoveRole(ctx contractapi.TransactionContextInterface, 
 	userJSON, _ := json.Marshal(user)
 
 	// return ctx.GetStub().PutState(userId, userJSON)
-	err = ctx.GetStub().PutState(userId, userJSON)
+	err = ctx.GetStub().PutState(wallet, userJSON)
+
 	if err != nil {
 		return fmt.Errorf("failed to put to world state: %v", err)
 	}
 
 	return ctx.GetStub().SetEvent("RemoveRole", userJSON)
+
 }
 
-func (s *SmartContract) AssignBadge(ctx contractapi.TransactionContextInterface, userId string, badge string) error {
-	user, err := s.ReadUser(ctx, userId)
+func (s *SmartContract) AssignBadge(ctx contractapi.TransactionContextInterface, wallet string, badge uint) error {
+
+	user, err := s.ReadUser(ctx, wallet)
 	if err != nil {
 		return err
 	}
 
-	user.Badge = append(user.Badge, badge)
+	user.BadgesReceived = append(user.BadgesReceived, badge)
 
 	userJSON, _ := json.Marshal(user)
 
 	// return ctx.GetStub().PutState(userId, userJSON)
-	err = ctx.GetStub().PutState(userId, userJSON)
+	err = ctx.GetStub().PutState(wallet, userJSON)
 	if err != nil {
 		return fmt.Errorf("failed to put to world state: %v", err)
 	}
@@ -178,15 +191,15 @@ func (s *SmartContract) AssignBadge(ctx contractapi.TransactionContextInterface,
 	return ctx.GetStub().SetEvent("AssignBadge", userJSON)
 }
 
-func (s *SmartContract) RemoveBadge(ctx contractapi.TransactionContextInterface, userId string, badge string) error {
-	user, err := s.ReadUser(ctx, userId)
+func (s *SmartContract) RemoveBadge(ctx contractapi.TransactionContextInterface, wallet string, badge uint) error {
+	user, err := s.ReadUser(ctx, wallet)
 	if err != nil {
 		return err
 	}
 
-	for i, b := range user.Badge {
+	for i, b := range user.BadgesReceived {
 		if b == badge {
-			user.Badge = append(user.Badge[:i], user.Badge[i+1:]...)
+			user.BadgesReceived = append(user.BadgesReceived[:i], user.BadgesReceived[i+1:]...)
 			break
 		}
 	}
@@ -194,7 +207,7 @@ func (s *SmartContract) RemoveBadge(ctx contractapi.TransactionContextInterface,
 	userJSON, _ := json.Marshal(user)
 
 	// return ctx.GetStub().PutState(userId, userJSON)
-	err = ctx.GetStub().PutState(userId, userJSON)
+	err = ctx.GetStub().PutState(wallet, userJSON)
 	if err != nil {
 		return fmt.Errorf("failed to put to world state: %v", err)
 	}
@@ -213,21 +226,21 @@ func (s *SmartContract) UserExists(ctx contractapi.TransactionContextInterface, 
 }
 
 // GetAllUsers returns all users found in world state
-func (s *SmartContract) GetAllUsers(ctx contractapi.TransactionContextInterface) ([]*UserProfile, error) {
+func (s *SmartContract) GetAllUsers(ctx contractapi.TransactionContextInterface) ([]*Profile, error) {
 	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
 	if err != nil {
 		return nil, err
 	}
 	defer resultsIterator.Close()
 
-	var assets []*UserProfile
+	var assets []*Profile
 	for resultsIterator.HasNext() {
 		queryResponse, err := resultsIterator.Next()
 		if err != nil {
 			return nil, err
 		}
 
-		var asset UserProfile
+		var asset Profile
 		json.Unmarshal(queryResponse.Value, &asset)
 		assets = append(assets, &asset)
 	}
