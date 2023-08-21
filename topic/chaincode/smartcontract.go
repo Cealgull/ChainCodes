@@ -1,11 +1,9 @@
 package chaincode
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"strings"
-	"time"
+	"reflect"
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
@@ -16,83 +14,42 @@ type SmartContract struct {
 }
 
 type Topic struct {
-	Id         string    `json:"id"`
-	CId        string    `json:"cid"`
-	Title      string    `json:"title"`
-	Creator    string    `json:"creator"`
-	CreateTime time.Time `json:"createTime"`
-	UpdateTime time.Time `json:"updateTime"`
-	Category   string    `json:"category"`
-	Tags       []string  `json:"tags,omitempty" metadata:"tags,optional" `
-	Images     []string  `json:"images,omitempty" metadata:"images,optional" `
-}
-
-const TimeFormat = "2006-01-02 15:04:05" // deprecated: use time.Time instead of string
-
-// InitLedger adds a base set of topics to the ledger
-func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
-	txntmsp, _ := ctx.GetStub().GetTxTimestamp()
-	timestamp := txntmsp.AsTime()
-	topics := []Topic{
-		{Id: "1", CId: "c1", Title: "title1", Creator: "user1", CreateTime: timestamp, UpdateTime: timestamp, Category: "category1", Tags: []string{"tag1", "tag2"}, Images: []string{"image1", "image2", "image3"}},
-		{Id: "2", CId: "c2", Title: "title2", Creator: "user2", CreateTime: timestamp, UpdateTime: timestamp, Category: "category2", Tags: []string{"tag1", "tag2", "tag3"}, Images: []string{"image1", "image2"}},
-		{Id: "3", CId: "c3", Title: "title3", Creator: "user3", CreateTime: timestamp, UpdateTime: timestamp, Category: "category3", Tags: []string{"tag1", "tag2", "tag3", "tag4"}},
-	}
-
-	for _, topic := range topics {
-		assetJSON, _ := json.Marshal(topic)
-
-		err := ctx.GetStub().PutState(topic.Id, assetJSON)
-		if err != nil {
-			return fmt.Errorf("failed to put to world state. %v", err)
-		}
-	}
-
-	return nil
-}
-
-// Get client identity which submit the transaction
-func (s *SmartContract) GetSubmittingClientIdentity(ctx contractapi.TransactionContextInterface) (string, error) {
-
-	b64ID, err := ctx.GetClientIdentity().GetID()
-	if err != nil {
-		return "", fmt.Errorf("failed to read clientID: %v", err)
-	}
-	decodeID, err := base64.StdEncoding.DecodeString(b64ID)
-	if err != nil {
-		return "", fmt.Errorf("failed to base64 decode clientID: %v", err)
-	}
-	return string(decodeID), nil
+	Hash      string   `json:"hash"`
+	Title     string   `json:"title"`
+	Creator   string   `json:"creator"`
+	CID       string   `json:"cid"`
+	Category  uint     `json:"category"`
+	Tags      []uint   `json:"tags"`
+	Images    []string `json:"images"`
+	Upvotes   []string `json:"upvotes"`
+	Downvotes []string `json:"downvotes"`
 }
 
 // CreateTopic creates a topic.
-func (s *SmartContract) CreateTopic(ctx contractapi.TransactionContextInterface, topicId string, cid string, title string, operator string, category string, tagsString string, imagesString string) error {
-	exists, err := s.TopicExists(ctx, topicId)
+func (s *SmartContract) CreateTopic(ctx contractapi.TransactionContextInterface, payload string) error {
+
+	topic := Topic{}
+	err := json.Unmarshal([]byte(payload), &topic)
+
+	if err != nil {
+		return err
+	}
+
+	exists, err := s.TopicExists(ctx, topic.Hash)
 	if err != nil {
 		return err
 	}
 	if exists {
-		return fmt.Errorf("the topic %s already exists", topicId)
+		return fmt.Errorf("the topic %s already exists", topic.Hash)
 	}
 
-	txntmsp, _ := ctx.GetStub().GetTxTimestamp()
-	timestamp := txntmsp.AsTime()
-	tags := strings.Split(tagsString, "-")
-	images := strings.Split(imagesString, "-")
-	topic := Topic{
-		Id:         topicId,
-		CId:        cid,
-		Title:      title,
-		Creator:    operator,
-		CreateTime: timestamp,
-		UpdateTime: timestamp,
-		Category:   category,
-		Tags:       tags,
-		Images:     images,
+	err = ctx.GetStub().PutState(topic.Hash, []byte(payload))
+
+	if err != nil {
+		return fmt.Errorf("failed to put to world state: %v", err)
 	}
 
-	topicJSON, _ := json.Marshal(topic)
-	return ctx.GetStub().PutState(topicId, topicJSON)
+	return ctx.GetStub().SetEvent("CreateTopic", []byte(payload))
 }
 
 // TopicExists returns true when topic with given ID exists in world state
@@ -122,46 +79,46 @@ func (s *SmartContract) ReadTopic(ctx contractapi.TransactionContextInterface, t
 }
 
 // UpdateTopic updates an existing topic in the world state with provided parameters.
-func (s *SmartContract) UpdateTopic(ctx contractapi.TransactionContextInterface, topicId string, cid string, title string, operator string, category string, tagsString string, imagesString string) error {
-	topic, err := s.ReadTopic(ctx, topicId)
+func (s *SmartContract) UpdateTopic(ctx contractapi.TransactionContextInterface, payload string) error {
+	next := Topic{}
+	err := json.Unmarshal([]byte(payload), &next)
+
 	if err != nil {
 		return err
 	}
 
-	if topic.Creator != operator {
-		return fmt.Errorf("the topic %s can only be updated by its creator", topicId)
-	}
-
-	txntmsp, _ := ctx.GetStub().GetTxTimestamp()
-	timestamp := txntmsp.AsTime()
-
-	topic.CId = cid
-	topic.Title = title
-	topic.UpdateTime = timestamp
-	topic.Category = category
-	tags := strings.Split(tagsString, "-")
-	topic.Tags = tags
-	images := strings.Split(imagesString, "-")
-	topic.Images = images
-	topicJSON, _ := json.Marshal(topic)
-
-	return ctx.GetStub().PutState(topicId, topicJSON)
-}
-
-// Renew topic update time
-func (s *SmartContract) RenewTopicUpdateTime(ctx contractapi.TransactionContextInterface, topicId string) error {
-	topic, err := s.ReadTopic(ctx, topicId)
+	exists, err := s.TopicExists(ctx, next.Hash)
 	if err != nil {
 		return err
 	}
+	if !exists {
+		return fmt.Errorf("the topic %s does not exist", next.Hash)
+	}
 
-	txntmsp, _ := ctx.GetStub().GetTxTimestamp()
-	timestamp := txntmsp.AsTime()
+	prev, _ := s.ReadTopic(ctx, next.Hash)
 
-	topic.UpdateTime = timestamp
-	topicJSON, _ := json.Marshal(topic)
+	x := reflect.ValueOf(&next).Elem()
+	y := reflect.ValueOf(prev).Elem()
 
-	return ctx.GetStub().PutState(topicId, topicJSON)
+	// use reflection package to dynamically update non-zero value
+	for i := 0; i < x.NumField(); i++ {
+		name := x.Type().Field(i).Name
+		yf := y.FieldByName(name)
+		xf := x.FieldByName(name)
+		if name != "Hash" && yf.CanSet() && !xf.IsZero() {
+			yf.Set(xf)
+		}
+	}
+
+	// overwriting original topic with new topic
+
+	err = ctx.GetStub().PutState(prev.Hash, []byte(payload))
+
+	if err != nil {
+		return fmt.Errorf("failed to put to world state: %v", err)
+	}
+
+	return ctx.GetStub().SetEvent("UpdateTopic", []byte(payload))
 }
 
 // GetAllTopics returns all topics found in world state
@@ -197,8 +154,8 @@ func (s *SmartContract) QueryTopicsByCreator(ctx contractapi.TransactionContextI
 	return getQueryResultForQueryString(ctx, queryString)
 }
 
-func (s *SmartContract) QueryTopicsByCategory(ctx contractapi.TransactionContextInterface, category string) ([]*Topic, error) {
-	queryString := fmt.Sprintf(`{"selector":{"category":"%s"}}`, category)
+func (s *SmartContract) QueryTopicsByCategory(ctx contractapi.TransactionContextInterface, category uint) ([]*Topic, error) {
+	queryString := fmt.Sprintf(`{"selector":{"category":"%d"}}`, category)
 	return getQueryResultForQueryString(ctx, queryString)
 }
 
