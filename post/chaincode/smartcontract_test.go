@@ -46,63 +46,50 @@ const myOrg2Msp = "Org2Testmsp"
 const myOrg2Clientid = "myOrg2Userid"
 const myOrg2PrivCollection = "Org2TestmspPrivateCollection"
 
-func TestInitLedger(t *testing.T) {
-	chaincodeStub := &mocks.ChaincodeStub{}
-	transactionContext := &mocks.TransactionContext{}
-	transactionContext.GetStubReturns(chaincodeStub)
-
-	Post := chaincode.SmartContract{}
-	err := Post.InitLedger(transactionContext)
-	require.NoError(t, err)
-
-	chaincodeStub.PutStateReturns(fmt.Errorf("failed inserting key"))
-	err = Post.InitLedger(transactionContext)
-	require.EqualError(t, err, "failed to put to world state. failed inserting key")
+var samplePost = &chaincode.Post{
+	Hash:     "1",
+	Creator:  "1",
+	CID:      "1",
+	ReplyTo:  "1",
+	BelongTo: "1",
 }
 
-func TestGetSubmittingClientIdentity(t *testing.T) {
-	transactionContext, _ := prepMocksAsOrg1()
-	Post := chaincode.SmartContract{}
-
-	_, err := Post.GetSubmittingClientIdentity(transactionContext)
-	require.NoError(t, err)
-
-	tr := &mocks.TransactionContext{}
-	clientIdentity := &mocks.ClientIdentity{}
-	clientIdentity.GetIDReturns("", fmt.Errorf("failure"))
-	tr.GetClientIdentityReturns(clientIdentity)
-	_, err = Post.GetSubmittingClientIdentity(tr)
-	require.EqualError(t, err, "failed to read clientID: failure")
-	clientIdentity.GetIDReturns("aa", nil)
-	_, err = Post.GetSubmittingClientIdentity(tr)
-	require.EqualError(t, err, "failed to base64 decode clientID: illegal base64 data at input byte 0")
-}
+var sampleInput, _ = json.Marshal(samplePost)
 
 func TestCreatePost(t *testing.T) {
 	transactionContext, chaincodeStub := prepMocksAsOrg1()
-	Post := chaincode.SmartContract{}
+	post := chaincode.SmartContract{}
 
-	err := Post.CreatePost(transactionContext, "1", "1", "1", "1", "1", "1-1")
+	err := post.CreatePost(transactionContext, string(sampleInput))
 	require.NoError(t, err)
 
 	chaincodeStub.GetStateReturns([]byte{}, fmt.Errorf("failure"))
-	err = Post.CreatePost(transactionContext, "1", "1", "1", "1", "1", "1-1")
+	err = post.CreatePost(transactionContext, string(sampleInput))
 	require.EqualError(t, err, "failed to read from world state: failure")
 
-	expectedPost := &chaincode.Post{Id: "1"}
+	expectedPost := &chaincode.Post{Hash: "1"}
 	bytes, err := json.Marshal(expectedPost)
 	require.NoError(t, err)
 
 	chaincodeStub.GetStateReturns(bytes, nil)
-	err = Post.CreatePost(transactionContext, "1", "1", "1", "1", "1", "1-1")
+	err = post.CreatePost(transactionContext, string(sampleInput))
 	require.EqualError(t, err, "the post 1 already exists")
+
+	err = post.CreatePost(transactionContext, "sad")
+	require.EqualError(t, err, "invalid character 's' looking for beginning of value")
+
+	chaincodeStub.GetStateReturns(nil, nil)
+	chaincodeStub.PutStateReturns(fmt.Errorf("failed inserting key"))
+	err = post.CreatePost(transactionContext, string(sampleInput))
+	require.EqualError(t, err, "failed to put to world state: failed inserting key")
+
 }
 
 func TestReadPost(t *testing.T) {
 	transactionContext, chaincodeStub := prepMocksAsOrg1()
 	post := chaincode.SmartContract{}
 
-	tmpPost := &chaincode.Post{Id: "1"}
+	tmpPost := &chaincode.Post{Hash: "1"}
 	bytes, _ := json.Marshal(tmpPost)
 	chaincodeStub.GetStateReturns(bytes, nil)
 	_, err := post.ReadPost(transactionContext, "1")
@@ -121,30 +108,31 @@ func TestUpdatePost(t *testing.T) {
 	transactionContext, chaincodeStub := prepMocksAsOrg1()
 	post := chaincode.SmartContract{}
 
-	err := post.UpdatePost(transactionContext, "1", "1", "1", "1-1")
+	err := post.UpdatePost(transactionContext, string(sampleInput))
 	require.EqualError(t, err, "the post 1 does not exist")
 
 	chaincodeStub.GetStateReturns([]byte{}, fmt.Errorf("failure"))
-	err = post.UpdatePost(transactionContext, "1", "1", "1", "1-1")
+	err = post.UpdatePost(transactionContext, string(sampleInput))
 	require.EqualError(t, err, "failed to read from world state: failure")
 
-	tmpPost := &chaincode.Post{Id: "1", Creator: "1"}
+	tmpPost := &chaincode.Post{Hash: "1", Creator: "1"}
 	bytes, _ := json.Marshal(tmpPost)
 	chaincodeStub.GetStateReturns(bytes, nil)
 
-	err = post.UpdatePost(transactionContext, "1", "1", "1", "1-1")
+	err = post.UpdatePost(transactionContext, string(sampleInput))
 	require.NoError(t, err)
 
-	tmpPost = &chaincode.Post{Id: "1", Creator: myOrg2Clientid}
-	bytes, _ = json.Marshal(tmpPost)
-	chaincodeStub.GetStateReturns(bytes, nil)
+	err = post.UpdatePost(transactionContext, "sad")
+	require.EqualError(t, err, "invalid character 's' looking for beginning of value")
 
-	err = post.UpdatePost(transactionContext, "1", "1", "1", "1-1")
-	require.EqualError(t, err, "the post 1 can only be updated by its creator")
+	chaincodeStub.PutStateReturns(fmt.Errorf("failed inserting key"))
+	err = post.UpdatePost(transactionContext, string(sampleInput))
+	require.EqualError(t, err, "failed to put to world state: failed inserting key")
+
 }
 
 func TestGetAllPosts(t *testing.T) {
-	asset := &chaincode.Post{Id: "user1"}
+	asset := &chaincode.Post{Hash: "user1"}
 	bytes, err := json.Marshal(asset)
 	require.NoError(t, err)
 
@@ -183,7 +171,7 @@ func TestQueryPostsByCreator(t *testing.T) {
 	_, err := Post.QueryPostsByCreator(transactionContext, "1")
 	require.EqualError(t, err, "failure")
 
-	tmpPost := &chaincode.Post{Id: "user1", Creator: myOrg1Clientid}
+	tmpPost := &chaincode.Post{Hash: "user1", Creator: myOrg1Clientid}
 	bytes, _ := json.Marshal(tmpPost)
 
 	iterator := &mocks.StateQueryIterator{}

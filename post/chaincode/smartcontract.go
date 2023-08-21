@@ -1,10 +1,9 @@
 package chaincode
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"strings"
+	"reflect"
 	"time"
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
@@ -16,80 +15,39 @@ type SmartContract struct {
 }
 
 type Post struct {
-	Id         string    `json:"id"`
-	CId        string    `json:"cid"`
-	Creator    string    `json:"creator"`
-	CreateTime time.Time `json:"createTime"`
-	UpdateTime time.Time `json:"updateTime"`
-	BelongTo   string    `json:"belongTo"`
-	ReplyTo    string    `json:"replyTo,omitempty" metadata:"replyTo,optional" `
-	Images     []string  `json:"images,omitempty" metadata:"images,optional" `
-}
-
-const TimeFormat = "2006-01-02 15:04:05" // deprecated: use time.Time instead of string
-
-// InitLedger adds a base set of posts to the ledger
-func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
-	txntmsp, _ := ctx.GetStub().GetTxTimestamp()
-	timestamp := txntmsp.AsTime()
-	posts := []Post{
-		{Id: "1", CId: "c1", Creator: "user1", CreateTime: timestamp, UpdateTime: timestamp, BelongTo: "1", ReplyTo: "1", Images: []string{"1.jpg", "2.jpg"}},
-		{Id: "2", CId: "c2", Creator: "user2", CreateTime: timestamp, UpdateTime: timestamp, BelongTo: "2", ReplyTo: "2", Images: []string{"3.jpg", "4.jpg"}},
-		{Id: "3", CId: "c3", Creator: "user3", CreateTime: timestamp, UpdateTime: timestamp, BelongTo: "3", ReplyTo: "3"},
-	}
-
-	for _, post := range posts {
-		assetJSON, _ := json.Marshal(post)
-
-		err := ctx.GetStub().PutState(post.Id, assetJSON)
-		if err != nil {
-			return fmt.Errorf("failed to put to world state. %v", err)
-		}
-	}
-
-	return nil
-}
-
-// Get client identity which submit the transaction
-func (s *SmartContract) GetSubmittingClientIdentity(ctx contractapi.TransactionContextInterface) (string, error) {
-
-	b64ID, err := ctx.GetClientIdentity().GetID()
-	if err != nil {
-		return "", fmt.Errorf("failed to read clientID: %v", err)
-	}
-	decodeID, err := base64.StdEncoding.DecodeString(b64ID)
-	if err != nil {
-		return "", fmt.Errorf("failed to base64 decode clientID: %v", err)
-	}
-	return string(decodeID), nil
+	Hash     string    `json:"hash"`
+	Creator  string    `json:"creator"`
+	CID      string    `json:"cid"`
+	CreateAt time.Time `json:"createAt"`
+	UpdateAt time.Time `json:"updateAt"`
+	ReplyTo  string    `json:"replyTo"`
+	BelongTo string    `json:"belongTo"`
 }
 
 // CreatePost creates a post.
-func (s *SmartContract) CreatePost(ctx contractapi.TransactionContextInterface, postId string, cid string, operator string, belongTo string, replyTo string, imagesString string) error {
-	exists, err := s.PostExists(ctx, postId)
+func (s *SmartContract) CreatePost(ctx contractapi.TransactionContextInterface, payload string) error {
+
+	post := Post{}
+	err := json.Unmarshal([]byte(payload), &post)
+
+	if err != nil {
+		return err
+	}
+
+	exists, err := s.PostExists(ctx, post.Hash)
 	if err != nil {
 		return err
 	}
 	if exists {
-		return fmt.Errorf("the post %s already exists", postId)
+		return fmt.Errorf("the post %s already exists", post.Hash)
 	}
 
-	txntmsp, _ := ctx.GetStub().GetTxTimestamp()
-	timestamp := txntmsp.AsTime()
-	images := strings.Split(imagesString, "-")
-	post := Post{
-		Id:         postId,
-		CId:        cid,
-		Creator:    operator,
-		CreateTime: timestamp,
-		UpdateTime: timestamp,
-		BelongTo:   belongTo,
-		ReplyTo:    replyTo,
-		Images:     images,
+	err = ctx.GetStub().PutState(post.Hash, []byte(payload))
+	if err != nil {
+		return fmt.Errorf("failed to put to world state: %v", err)
 	}
 
-	postJSON, _ := json.Marshal(post)
-	return ctx.GetStub().PutState(postId, postJSON)
+	return ctx.GetStub().SetEvent("CreatePost", []byte(payload))
 }
 
 // PostExists returns true when post with given ID exists in world state
@@ -119,26 +77,46 @@ func (s *SmartContract) ReadPost(ctx contractapi.TransactionContextInterface, po
 }
 
 // UpdatePost updates an existing post in the world state with provided parameters.
-func (s *SmartContract) UpdatePost(ctx contractapi.TransactionContextInterface, postId string, cid string, operator string, imagesString string) error {
-	post, err := s.ReadPost(ctx, postId)
+func (s *SmartContract) UpdatePost(ctx contractapi.TransactionContextInterface, payload string) error {
+	next := Post{}
+	err := json.Unmarshal([]byte(payload), &next)
+
 	if err != nil {
 		return err
 	}
 
-	if post.Creator != operator {
-		return fmt.Errorf("the post %s can only be updated by its creator", postId)
+	exists, err := s.PostExists(ctx, next.Hash)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("the post %s does not exist", next.Hash)
 	}
 
-	txntmsp, _ := ctx.GetStub().GetTxTimestamp()
-	timestamp := txntmsp.AsTime()
+	prev, _ := s.ReadPost(ctx, next.Hash)
 
-	post.CId = cid
-	post.UpdateTime = timestamp
-	images := strings.Split(imagesString, "-")
-	post.Images = images
-	postJSON, _ := json.Marshal(post)
+	x := reflect.ValueOf(&next).Elem()
+	y := reflect.ValueOf(prev).Elem()
 
-	return ctx.GetStub().PutState(postId, postJSON)
+	// use reflection package to dynamically update non-zero value
+	for i := 0; i < x.NumField(); i++ {
+		name := x.Type().Field(i).Name
+		yf := y.FieldByName(name)
+		xf := x.FieldByName(name)
+		if name != "Hash" && yf.CanSet() && !xf.IsZero() {
+			yf.Set(xf)
+		}
+	}
+
+	// overwriting original post with new post
+
+	err = ctx.GetStub().PutState(prev.Hash, []byte(payload))
+
+	if err != nil {
+		return fmt.Errorf("failed to put to world state: %v", err)
+	}
+
+	return ctx.GetStub().SetEvent("UpdatePost", []byte(payload))
 }
 
 // GetAllPosts returns all posts found in world state
