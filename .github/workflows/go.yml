@@ -50,3 +50,13 @@ jobs:
       run: |
         cd ./post/chaincode
         go test -cover
+
+    - name: Build plug
+      run: |
+        cd plug
+        go build
+
+    - name: Test plug
+      run: |
+        cd ./plug/chaincode
+        go test -cover
