@@ -22,6 +22,7 @@ type Post struct {
 	UpdateAt time.Time `json:"updateAt"`
 	ReplyTo  string    `json:"replyTo"`
 	BelongTo string    `json:"belongTo"`
+	Assets   []string  `json:"assets,omitempty"`
 }
 
 // CreatePost creates a post.
