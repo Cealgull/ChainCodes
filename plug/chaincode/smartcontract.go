@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"time"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
@@ -26,10 +25,9 @@ type Category struct {
 }
 
 type CategoryGroup struct {
-	Name       string    `json:"name"`
-	Color      uint      `json:"color"`
-	Categories []uint    `json:"categories"`
-	CreateAt   time.Time `json:"createAt"`
+	Name       string `json:"name"`
+	Color      uint   `json:"color"`
+	Categories []uint `json:"categories"`
 }
 
 // CreateTag creates a tag.
