@@ -123,7 +123,7 @@ func (s *SmartContract) UpdateTag(ctx contractapi.TransactionContextInterface, p
 		return fmt.Errorf("failed to put to world state: %v", err)
 	}
 
-	return ctx.GetStub().SetEvent("UpdateTag", yJSON)
+	return ctx.GetStub().SetEvent("UpdateTag", []byte(payload))
 }
 
 // GetAllTags returns all tags found in world state
@@ -242,7 +242,7 @@ func (s *SmartContract) UpdateCategory(ctx contractapi.TransactionContextInterfa
 		return fmt.Errorf("failed to put to world state: %v", err)
 	}
 
-	return ctx.GetStub().SetEvent("UpdateCategory", yJSON)
+	return ctx.GetStub().SetEvent("UpdateCategory", []byte(payload))
 }
 
 // GetAllCategorys returns all categorys found in world state
@@ -361,7 +361,7 @@ func (s *SmartContract) UpdateCategoryGroup(ctx contractapi.TransactionContextIn
 		return fmt.Errorf("failed to put to world state: %v", err)
 	}
 
-	return ctx.GetStub().SetEvent("UpdateCategoryGroup", yJSON)
+	return ctx.GetStub().SetEvent("UpdateCategoryGroup", []byte(payload))
 }
 
 // GetAllCategoryGroups returns all categoryGroups found in world state

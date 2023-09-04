@@ -117,7 +117,7 @@ func (s *SmartContract) UpdatePost(ctx contractapi.TransactionContextInterface, 
 		return fmt.Errorf("failed to put to world state: %v", err)
 	}
 
-	return ctx.GetStub().SetEvent("UpdatePost", yJSON)
+	return ctx.GetStub().SetEvent("UpdatePost", []byte(payload))
 }
 
 // GetAllPosts returns all posts found in world state

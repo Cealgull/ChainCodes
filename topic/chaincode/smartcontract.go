@@ -118,7 +118,7 @@ func (s *SmartContract) UpdateTopic(ctx contractapi.TransactionContextInterface,
 		return fmt.Errorf("failed to put to world state: %v", err)
 	}
 
-	return ctx.GetStub().SetEvent("UpdateTopic", yJSON)
+	return ctx.GetStub().SetEvent("UpdateTopic", []byte(payload))
 }
 
 // GetAllTopics returns all topics found in world state
