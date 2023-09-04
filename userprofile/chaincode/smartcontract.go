@@ -35,7 +35,7 @@ type Profile struct {
 // CreateUser creates a new user on the ledger with given details.
 func (s *SmartContract) CreateUser(ctx contractapi.TransactionContextInterface, payload string) error {
 
-  user := Profile{}
+	user := Profile{}
 
 	err := json.Unmarshal([]byte(payload), &user)
 
@@ -114,13 +114,14 @@ func (s *SmartContract) UpdateUser(ctx contractapi.TransactionContextInterface, 
 
 	// overwriting original user with new user
 
-	err = ctx.GetStub().PutState(prev.Wallet, []byte(payload))
+	yJSON, _ := json.Marshal(prev)
+	err = ctx.GetStub().PutState(prev.Wallet, yJSON)
 
 	if err != nil {
 		return fmt.Errorf("failed to put to world state: %v", err)
 	}
 
-	return ctx.GetStub().SetEvent("UpdateUser", []byte(payload))
+	return ctx.GetStub().SetEvent("UpdateUser", yJSON)
 }
 
 func (s *SmartContract) AssignRole(ctx contractapi.TransactionContextInterface, wallet string, role uint) error {

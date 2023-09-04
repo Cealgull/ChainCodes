@@ -116,14 +116,14 @@ func (s *SmartContract) UpdateTag(ctx contractapi.TransactionContextInterface, p
 	}
 
 	// overwriting original tag with new tag
-
-	err = ctx.GetStub().PutState(prev.Name, []byte(payload))
+	yJSON, _ := json.Marshal(prev)
+	err = ctx.GetStub().PutState(prev.Name, yJSON)
 
 	if err != nil {
 		return fmt.Errorf("failed to put to world state: %v", err)
 	}
 
-	return ctx.GetStub().SetEvent("UpdateTag", []byte(payload))
+	return ctx.GetStub().SetEvent("UpdateTag", yJSON)
 }
 
 // GetAllTags returns all tags found in world state
@@ -235,14 +235,14 @@ func (s *SmartContract) UpdateCategory(ctx contractapi.TransactionContextInterfa
 	}
 
 	// overwriting original category with new category
-
-	err = ctx.GetStub().PutState(prev.Name, []byte(payload))
+	yJSON, _ := json.Marshal(prev)
+	err = ctx.GetStub().PutState(prev.Name, yJSON)
 
 	if err != nil {
 		return fmt.Errorf("failed to put to world state: %v", err)
 	}
 
-	return ctx.GetStub().SetEvent("UpdateCategory", []byte(payload))
+	return ctx.GetStub().SetEvent("UpdateCategory", yJSON)
 }
 
 // GetAllCategorys returns all categorys found in world state
@@ -354,14 +354,14 @@ func (s *SmartContract) UpdateCategoryGroup(ctx contractapi.TransactionContextIn
 	}
 
 	// overwriting original categoryGroup with new categoryGroup
-
-	err = ctx.GetStub().PutState(prev.Name, []byte(payload))
+	yJSON, _ := json.Marshal(prev)
+	err = ctx.GetStub().PutState(prev.Name, yJSON)
 
 	if err != nil {
 		return fmt.Errorf("failed to put to world state: %v", err)
 	}
 
-	return ctx.GetStub().SetEvent("UpdateCategoryGroup", []byte(payload))
+	return ctx.GetStub().SetEvent("UpdateCategoryGroup", yJSON)
 }
 
 // GetAllCategoryGroups returns all categoryGroups found in world state

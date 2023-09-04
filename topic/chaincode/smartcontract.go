@@ -111,14 +111,14 @@ func (s *SmartContract) UpdateTopic(ctx contractapi.TransactionContextInterface,
 	}
 
 	// overwriting original topic with new topic
-
-	err = ctx.GetStub().PutState(prev.Hash, []byte(payload))
+	yJSON, _ := json.Marshal(prev)
+	err = ctx.GetStub().PutState(prev.Hash, yJSON)
 
 	if err != nil {
 		return fmt.Errorf("failed to put to world state: %v", err)
 	}
 
-	return ctx.GetStub().SetEvent("UpdateTopic", []byte(payload))
+	return ctx.GetStub().SetEvent("UpdateTopic", yJSON)
 }
 
 // GetAllTopics returns all topics found in world state

@@ -110,14 +110,14 @@ func (s *SmartContract) UpdatePost(ctx contractapi.TransactionContextInterface, 
 	}
 
 	// overwriting original post with new post
-
-	err = ctx.GetStub().PutState(prev.Hash, []byte(payload))
+	yJSON, _ := json.Marshal(prev)
+	err = ctx.GetStub().PutState(prev.Hash, yJSON)
 
 	if err != nil {
 		return fmt.Errorf("failed to put to world state: %v", err)
 	}
 
-	return ctx.GetStub().SetEvent("UpdatePost", []byte(payload))
+	return ctx.GetStub().SetEvent("UpdatePost", yJSON)
 }
 
 // GetAllPosts returns all posts found in world state
