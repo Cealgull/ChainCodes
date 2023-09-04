@@ -121,7 +121,7 @@ func (s *SmartContract) UpdateUser(ctx contractapi.TransactionContextInterface, 
 		return fmt.Errorf("failed to put to world state: %v", err)
 	}
 
-	return ctx.GetStub().SetEvent("UpdateUser", yJSON)
+	return ctx.GetStub().SetEvent("UpdateUser", []byte(payload))
 }
 
 func (s *SmartContract) AssignRole(ctx contractapi.TransactionContextInterface, wallet string, role uint) error {
