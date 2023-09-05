@@ -31,17 +31,17 @@ type Post struct {
 
 type Upvote struct {
 	Hash    string `json:"hash"`
-	Creator string `json:"wallet"`
+	Creator string `json:"creator"`
 }
 
 type Downvote struct {
 	Hash    string `json:"hash"`
-	Creator string `json:"wallet"`
+	Creator string `json:"creator"`
 }
 
 type Emoji struct {
 	Hash    string `json:"hash"`
-	Creator string `json:"wallet"`
+	Creator string `json:"creator"`
 	Code    uint   `json:"code"`
 }
 
