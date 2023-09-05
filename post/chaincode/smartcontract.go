@@ -23,6 +23,10 @@ type Post struct {
 	ReplyTo  string    `json:"replyTo"`
 	BelongTo string    `json:"belongTo"`
 	Assets   []string  `json:"assets,omitempty"`
+
+	Upvotes   []string          `json:"upvotes,omitempty"`
+	Downvotes []string          `json:"downvotes,omitempty"`
+	Emojis    map[uint][]string `json:"emojis,omitempty"`
 }
 
 // CreatePost creates a post.

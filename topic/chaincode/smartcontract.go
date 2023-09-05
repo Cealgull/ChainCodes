@@ -14,15 +14,17 @@ type SmartContract struct {
 }
 
 type Topic struct {
-	Hash      string   `json:"hash"`
-	Title     string   `json:"title"`
-	Creator   string   `json:"creator"`
-	CID       string   `json:"cid"`
-	Category  uint     `json:"category"`
-	Tags      []uint   `json:"tags"`
-	Images    []string `json:"images"`
-	Upvotes   []string `json:"upvotes"`
-	Downvotes []string `json:"downvotes"`
+	Hash     string   `json:"hash"`
+	Title    string   `json:"title"`
+	Creator  string   `json:"creator"`
+	CID      string   `json:"cid"`
+	Category uint     `json:"category"`
+	Tags     []uint   `json:"tags"`
+	Images   []string `json:"images"`
+
+	Upvotes   []string          `json:"upvotes"`
+	Downvotes []string          `json:"downvotes"`
+	Emojis    map[uint][]string `json:"emojis"`
 }
 
 // CreateTopic creates a topic.
