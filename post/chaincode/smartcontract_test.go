@@ -131,6 +131,137 @@ func TestUpdatePost(t *testing.T) {
 
 }
 
+var upvoteInput, _ = json.Marshal(&chaincode.Upvote{Hash: "1", Creator: "1"})
+
+func TestUpvotePost(t *testing.T) {
+	transactionContext, chaincodeStub := prepMocksAsOrg1()
+	post := chaincode.SmartContract{}
+
+	err := post.UpvotePost(transactionContext, string(upvoteInput))
+	require.EqualError(t, err, "the post 1 does not exist")
+
+	chaincodeStub.GetStateReturns([]byte{}, fmt.Errorf("failure"))
+	err = post.UpvotePost(transactionContext, string(upvoteInput))
+	require.EqualError(t, err, "failed to read from world state: failure")
+
+	tmpPost := &chaincode.Post{Hash: "1", Creator: "1"}
+	bytes, _ := json.Marshal(tmpPost)
+	chaincodeStub.GetStateReturns(bytes, nil)
+
+	err = post.UpvotePost(transactionContext, string(upvoteInput))
+	require.NoError(t, err)
+
+	err = post.UpvotePost(transactionContext, "sad")
+	require.EqualError(t, err, "invalid character 's' looking for beginning of value")
+
+	tmpPost = &chaincode.Post{Hash: "1", Creator: myOrg2Clientid}
+	bytes, _ = json.Marshal(tmpPost)
+	chaincodeStub.GetStateReturns(bytes, nil)
+
+	chaincodeStub.PutStateReturns(fmt.Errorf("failed inserting key"))
+	err = post.UpvotePost(transactionContext, string(upvoteInput))
+	require.EqualError(t, err, "failed to put to world state: failed inserting key")
+}
+
+func TestDownvotePost(t *testing.T) {
+	transactionContext, chaincodeStub := prepMocksAsOrg1()
+	post := chaincode.SmartContract{}
+
+	err := post.DownvotePost(transactionContext, string(upvoteInput))
+	require.EqualError(t, err, "the post 1 does not exist")
+
+	chaincodeStub.GetStateReturns([]byte{}, fmt.Errorf("failure"))
+	err = post.DownvotePost(transactionContext, string(upvoteInput))
+	require.EqualError(t, err, "failed to read from world state: failure")
+
+	tmpPost := &chaincode.Post{Hash: "1", Creator: "1"}
+	bytes, _ := json.Marshal(tmpPost)
+	chaincodeStub.GetStateReturns(bytes, nil)
+
+	err = post.DownvotePost(transactionContext, string(upvoteInput))
+	require.NoError(t, err)
+
+	err = post.DownvotePost(transactionContext, "sad")
+	require.EqualError(t, err, "invalid character 's' looking for beginning of value")
+
+	tmpPost = &chaincode.Post{Hash: "1", Creator: myOrg2Clientid}
+	bytes, _ = json.Marshal(tmpPost)
+	chaincodeStub.GetStateReturns(bytes, nil)
+
+	chaincodeStub.PutStateReturns(fmt.Errorf("failed inserting key"))
+	err = post.DownvotePost(transactionContext, string(upvoteInput))
+	require.EqualError(t, err, "failed to put to world state: failed inserting key")
+}
+
+var emojiInput, _ = json.Marshal(&chaincode.Emoji{Hash: "1", Creator: "1", Code: 1})
+
+func TestAddEmojiPost(t *testing.T) {
+	transactionContext, chaincodeStub := prepMocksAsOrg1()
+	post := chaincode.SmartContract{}
+
+	err := post.AddEmojiPost(transactionContext, string(emojiInput))
+	require.EqualError(t, err, "the post 1 does not exist")
+
+	chaincodeStub.GetStateReturns([]byte{}, fmt.Errorf("failure"))
+	err = post.AddEmojiPost(transactionContext, string(emojiInput))
+	require.EqualError(t, err, "failed to read from world state: failure")
+
+	tmpPost := &chaincode.Post{Hash: "1", Creator: "1"}
+	bytes, _ := json.Marshal(tmpPost)
+	chaincodeStub.GetStateReturns(bytes, nil)
+
+	err = post.AddEmojiPost(transactionContext, string(emojiInput))
+	require.NoError(t, err)
+
+	err = post.AddEmojiPost(transactionContext, "sad")
+	require.EqualError(t, err, "invalid character 's' looking for beginning of value")
+
+	tmpPost = &chaincode.Post{Hash: "1", Creator: myOrg2Clientid}
+	bytes, _ = json.Marshal(tmpPost)
+	chaincodeStub.GetStateReturns(bytes, nil)
+
+	chaincodeStub.PutStateReturns(fmt.Errorf("failed inserting key"))
+	err = post.AddEmojiPost(transactionContext, string(emojiInput))
+	require.EqualError(t, err, "failed to put to world state: failed inserting key")
+}
+
+func TestRemoveEmojiPost(t *testing.T) {
+	transactionContext, chaincodeStub := prepMocksAsOrg1()
+	post := chaincode.SmartContract{}
+
+	err := post.RemoveEmojiPost(transactionContext, string(emojiInput))
+	require.EqualError(t, err, "the post 1 does not exist")
+
+	chaincodeStub.GetStateReturns([]byte{}, fmt.Errorf("failure"))
+	err = post.RemoveEmojiPost(transactionContext, string(emojiInput))
+	require.EqualError(t, err, "failed to read from world state: failure")
+
+	tmpPost := &chaincode.Post{Hash: "1", Creator: "1"}
+	bytes, _ := json.Marshal(tmpPost)
+	chaincodeStub.GetStateReturns(bytes, nil)
+
+	err = post.RemoveEmojiPost(transactionContext, string(emojiInput))
+	require.NoError(t, err)
+
+	err = post.RemoveEmojiPost(transactionContext, "sad")
+	require.EqualError(t, err, "invalid character 's' looking for beginning of value")
+
+	tmpPost = &chaincode.Post{Hash: "1", Creator: myOrg2Clientid}
+	bytes, _ = json.Marshal(tmpPost)
+	chaincodeStub.GetStateReturns(bytes, nil)
+
+	chaincodeStub.PutStateReturns(fmt.Errorf("failed inserting key"))
+	err = post.RemoveEmojiPost(transactionContext, string(emojiInput))
+	require.EqualError(t, err, "failed to put to world state: failed inserting key")
+
+	testRemoveEmojiPost := &chaincode.Post{Hash: "1", Creator: "1", Emojis: make(map[uint][]string)}
+	testRemoveEmojiPost.Emojis[1] = []string{"1"}
+	bytes, _ = json.Marshal(testRemoveEmojiPost)
+	chaincodeStub.GetStateReturns(bytes, nil)
+	err = post.RemoveEmojiPost(transactionContext, string(emojiInput))
+	require.EqualError(t, err, "failed to put to world state: failed inserting key")
+}
+
 func TestGetAllPosts(t *testing.T) {
 	asset := &chaincode.Post{Hash: "user1"}
 	bytes, err := json.Marshal(asset)

@@ -27,6 +27,22 @@ type Topic struct {
 	Emojis    map[uint][]string `json:"emojis"`
 }
 
+type Upvote struct {
+	Hash    string `json:"hash"`
+	Creator string `json:"wallet"`
+}
+
+type Downvote struct {
+	Hash    string `json:"hash"`
+	Creator string `json:"wallet"`
+}
+
+type Emoji struct {
+	Hash    string `json:"hash"`
+	Creator string `json:"wallet"`
+	Code    uint   `json:"code"`
+}
+
 // CreateTopic creates a topic.
 func (s *SmartContract) CreateTopic(ctx contractapi.TransactionContextInterface, payload string) error {
 
@@ -121,6 +137,128 @@ func (s *SmartContract) UpdateTopic(ctx contractapi.TransactionContextInterface,
 	}
 
 	return ctx.GetStub().SetEvent("UpdateTopic", []byte(payload))
+}
+
+func (s *SmartContract) UpvoteTopic(ctx contractapi.TransactionContextInterface, payload string) error {
+	upvote := Upvote{}
+	err := json.Unmarshal([]byte(payload), &upvote)
+	if err != nil {
+		return err
+	}
+
+	exists, err := s.TopicExists(ctx, upvote.Hash)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("the topic %s does not exist", upvote.Hash)
+	}
+
+	topic, _ := s.ReadTopic(ctx, upvote.Hash)
+	topic.Upvotes = append(topic.Upvotes, upvote.Creator)
+	topicJSON, _ := json.Marshal(topic)
+	err = ctx.GetStub().PutState(upvote.Hash, topicJSON)
+
+	if err != nil {
+		return fmt.Errorf("failed to put to world state: %v", err)
+	}
+
+	return ctx.GetStub().SetEvent("UpvoteTopic", []byte(payload))
+}
+
+func (s *SmartContract) DownvoteTopic(ctx contractapi.TransactionContextInterface, payload string) error {
+	downvote := Downvote{}
+	err := json.Unmarshal([]byte(payload), &downvote)
+	if err != nil {
+		return err
+	}
+
+	exists, err := s.TopicExists(ctx, downvote.Hash)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("the topic %s does not exist", downvote.Hash)
+	}
+
+	topic, _ := s.ReadTopic(ctx, downvote.Hash)
+	topic.Downvotes = append(topic.Downvotes, downvote.Creator)
+	topicJSON, _ := json.Marshal(topic)
+
+	err = ctx.GetStub().PutState(downvote.Hash, topicJSON)
+	if err != nil {
+		return fmt.Errorf("failed to put to world state: %v", err)
+	}
+
+	return ctx.GetStub().SetEvent("DownvoteTopic", []byte(payload))
+}
+
+func (s *SmartContract) AddEmojiTopic(ctx contractapi.TransactionContextInterface, payload string) error {
+	emoji := Emoji{}
+	err := json.Unmarshal([]byte(payload), &emoji)
+	if err != nil {
+		return err
+	}
+
+	exists, err := s.TopicExists(ctx, emoji.Hash)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("the topic %s does not exist", emoji.Hash)
+	}
+
+	topic, _ := s.ReadTopic(ctx, emoji.Hash)
+	if topic.Emojis == nil {
+		topic.Emojis = make(map[uint][]string)
+	}
+	topic.Emojis[emoji.Code] = append(topic.Emojis[emoji.Code], emoji.Creator)
+	topicJSON, _ := json.Marshal(topic)
+
+	err = ctx.GetStub().PutState(emoji.Hash, topicJSON)
+	if err != nil {
+		return fmt.Errorf("failed to put to world state: %v", err)
+	}
+
+	return ctx.GetStub().SetEvent("AddEmojiTopic", []byte(payload))
+}
+
+func (s *SmartContract) RemoveEmojiTopic(ctx contractapi.TransactionContextInterface, payload string) error {
+	emoji := Emoji{}
+	err := json.Unmarshal([]byte(payload), &emoji)
+	if err != nil {
+		return err
+	}
+
+	exists, err := s.TopicExists(ctx, emoji.Hash)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("the topic %s does not exist", emoji.Hash)
+	}
+
+	topic, _ := s.ReadTopic(ctx, emoji.Hash)
+	if topic.Emojis[emoji.Code] != nil {
+		for i, v := range topic.Emojis[emoji.Code] {
+			if v == emoji.Creator {
+				topic.Emojis[emoji.Code] = append(topic.Emojis[emoji.Code][:i], topic.Emojis[emoji.Code][i+1:]...)
+				break
+			}
+		}
+		if len(topic.Emojis[emoji.Code]) == 0 {
+			delete(topic.Emojis, emoji.Code)
+		}
+	}
+
+	topicJSON, _ := json.Marshal(topic)
+
+	err = ctx.GetStub().PutState(emoji.Hash, topicJSON)
+	if err != nil {
+		return fmt.Errorf("failed to put to world state: %v", err)
+	}
+
+	return ctx.GetStub().SetEvent("RemoveEmojiTopic", []byte(payload))
 }
 
 // GetAllTopics returns all topics found in world state

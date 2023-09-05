@@ -137,6 +137,137 @@ func TestUpdateTopic(t *testing.T) {
 	require.EqualError(t, err, "failed to put to world state: failed inserting key")
 }
 
+var upvoteInput, _ = json.Marshal(&chaincode.Upvote{Hash: "1", Creator: "1"})
+
+func TestUpvoteTopic(t *testing.T) {
+	transactionContext, chaincodeStub := prepMocksAsOrg1()
+	topic := chaincode.SmartContract{}
+
+	err := topic.UpvoteTopic(transactionContext, string(upvoteInput))
+	require.EqualError(t, err, "the topic 1 does not exist")
+
+	chaincodeStub.GetStateReturns([]byte{}, fmt.Errorf("failure"))
+	err = topic.UpvoteTopic(transactionContext, string(upvoteInput))
+	require.EqualError(t, err, "failed to read from world state: failure")
+
+	tmpTopic := &chaincode.Topic{Hash: "1", Creator: "1"}
+	bytes, _ := json.Marshal(tmpTopic)
+	chaincodeStub.GetStateReturns(bytes, nil)
+
+	err = topic.UpvoteTopic(transactionContext, string(upvoteInput))
+	require.NoError(t, err)
+
+	err = topic.UpvoteTopic(transactionContext, "sad")
+	require.EqualError(t, err, "invalid character 's' looking for beginning of value")
+
+	tmpTopic = &chaincode.Topic{Hash: "1", Creator: myOrg2Clientid}
+	bytes, _ = json.Marshal(tmpTopic)
+	chaincodeStub.GetStateReturns(bytes, nil)
+
+	chaincodeStub.PutStateReturns(fmt.Errorf("failed inserting key"))
+	err = topic.UpvoteTopic(transactionContext, string(upvoteInput))
+	require.EqualError(t, err, "failed to put to world state: failed inserting key")
+}
+
+func TestDownvoteTopic(t *testing.T) {
+	transactionContext, chaincodeStub := prepMocksAsOrg1()
+	topic := chaincode.SmartContract{}
+
+	err := topic.DownvoteTopic(transactionContext, string(upvoteInput))
+	require.EqualError(t, err, "the topic 1 does not exist")
+
+	chaincodeStub.GetStateReturns([]byte{}, fmt.Errorf("failure"))
+	err = topic.DownvoteTopic(transactionContext, string(upvoteInput))
+	require.EqualError(t, err, "failed to read from world state: failure")
+
+	tmpTopic := &chaincode.Topic{Hash: "1", Creator: "1"}
+	bytes, _ := json.Marshal(tmpTopic)
+	chaincodeStub.GetStateReturns(bytes, nil)
+
+	err = topic.DownvoteTopic(transactionContext, string(upvoteInput))
+	require.NoError(t, err)
+
+	err = topic.DownvoteTopic(transactionContext, "sad")
+	require.EqualError(t, err, "invalid character 's' looking for beginning of value")
+
+	tmpTopic = &chaincode.Topic{Hash: "1", Creator: myOrg2Clientid}
+	bytes, _ = json.Marshal(tmpTopic)
+	chaincodeStub.GetStateReturns(bytes, nil)
+
+	chaincodeStub.PutStateReturns(fmt.Errorf("failed inserting key"))
+	err = topic.DownvoteTopic(transactionContext, string(upvoteInput))
+	require.EqualError(t, err, "failed to put to world state: failed inserting key")
+}
+
+var emojiInput, _ = json.Marshal(&chaincode.Emoji{Hash: "1", Creator: "1", Code: 1})
+
+func TestAddEmojiTopic(t *testing.T) {
+	transactionContext, chaincodeStub := prepMocksAsOrg1()
+	topic := chaincode.SmartContract{}
+
+	err := topic.AddEmojiTopic(transactionContext, string(emojiInput))
+	require.EqualError(t, err, "the topic 1 does not exist")
+
+	chaincodeStub.GetStateReturns([]byte{}, fmt.Errorf("failure"))
+	err = topic.AddEmojiTopic(transactionContext, string(emojiInput))
+	require.EqualError(t, err, "failed to read from world state: failure")
+
+	tmpTopic := &chaincode.Topic{Hash: "1", Creator: "1"}
+	bytes, _ := json.Marshal(tmpTopic)
+	chaincodeStub.GetStateReturns(bytes, nil)
+
+	err = topic.AddEmojiTopic(transactionContext, string(emojiInput))
+	require.NoError(t, err)
+
+	err = topic.AddEmojiTopic(transactionContext, "sad")
+	require.EqualError(t, err, "invalid character 's' looking for beginning of value")
+
+	tmpTopic = &chaincode.Topic{Hash: "1", Creator: myOrg2Clientid}
+	bytes, _ = json.Marshal(tmpTopic)
+	chaincodeStub.GetStateReturns(bytes, nil)
+
+	chaincodeStub.PutStateReturns(fmt.Errorf("failed inserting key"))
+	err = topic.AddEmojiTopic(transactionContext, string(emojiInput))
+	require.EqualError(t, err, "failed to put to world state: failed inserting key")
+}
+
+func TestRemoveEmojiTopic(t *testing.T) {
+	transactionContext, chaincodeStub := prepMocksAsOrg1()
+	topic := chaincode.SmartContract{}
+
+	err := topic.RemoveEmojiTopic(transactionContext, string(emojiInput))
+	require.EqualError(t, err, "the topic 1 does not exist")
+
+	chaincodeStub.GetStateReturns([]byte{}, fmt.Errorf("failure"))
+	err = topic.RemoveEmojiTopic(transactionContext, string(emojiInput))
+	require.EqualError(t, err, "failed to read from world state: failure")
+
+	tmpTopic := &chaincode.Topic{Hash: "1", Creator: "1"}
+	bytes, _ := json.Marshal(tmpTopic)
+	chaincodeStub.GetStateReturns(bytes, nil)
+
+	err = topic.RemoveEmojiTopic(transactionContext, string(emojiInput))
+	require.NoError(t, err)
+
+	err = topic.RemoveEmojiTopic(transactionContext, "sad")
+	require.EqualError(t, err, "invalid character 's' looking for beginning of value")
+
+	tmpTopic = &chaincode.Topic{Hash: "1", Creator: myOrg2Clientid}
+	bytes, _ = json.Marshal(tmpTopic)
+	chaincodeStub.GetStateReturns(bytes, nil)
+
+	chaincodeStub.PutStateReturns(fmt.Errorf("failed inserting key"))
+	err = topic.RemoveEmojiTopic(transactionContext, string(emojiInput))
+	require.EqualError(t, err, "failed to put to world state: failed inserting key")
+
+	testRemoveEmojiTopic := &chaincode.Topic{Hash: "1", Creator: "1", Emojis: make(map[uint][]string)}
+	testRemoveEmojiTopic.Emojis[1] = []string{"1"}
+	bytes, _ = json.Marshal(testRemoveEmojiTopic)
+	chaincodeStub.GetStateReturns(bytes, nil)
+	err = topic.RemoveEmojiTopic(transactionContext, string(emojiInput))
+	require.EqualError(t, err, "failed to put to world state: failed inserting key")
+}
+
 func TestGetAllTopics(t *testing.T) {
 	asset := &chaincode.Topic{Hash: "user1"}
 	bytes, err := json.Marshal(asset)

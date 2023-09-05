@@ -29,6 +29,22 @@ type Post struct {
 	Emojis    map[uint][]string `json:"emojis,omitempty"`
 }
 
+type Upvote struct {
+	Hash    string `json:"hash"`
+	Creator string `json:"wallet"`
+}
+
+type Downvote struct {
+	Hash    string `json:"hash"`
+	Creator string `json:"wallet"`
+}
+
+type Emoji struct {
+	Hash    string `json:"hash"`
+	Creator string `json:"wallet"`
+	Code    uint   `json:"code"`
+}
+
 // CreatePost creates a post.
 func (s *SmartContract) CreatePost(ctx contractapi.TransactionContextInterface, payload string) error {
 
@@ -122,6 +138,128 @@ func (s *SmartContract) UpdatePost(ctx contractapi.TransactionContextInterface, 
 	}
 
 	return ctx.GetStub().SetEvent("UpdatePost", []byte(payload))
+}
+
+func (s *SmartContract) UpvotePost(ctx contractapi.TransactionContextInterface, payload string) error {
+	upvote := Upvote{}
+	err := json.Unmarshal([]byte(payload), &upvote)
+	if err != nil {
+		return err
+	}
+
+	exists, err := s.PostExists(ctx, upvote.Hash)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("the post %s does not exist", upvote.Hash)
+	}
+
+	Post, _ := s.ReadPost(ctx, upvote.Hash)
+	Post.Upvotes = append(Post.Upvotes, upvote.Creator)
+	PostJSON, _ := json.Marshal(Post)
+	err = ctx.GetStub().PutState(upvote.Hash, PostJSON)
+
+	if err != nil {
+		return fmt.Errorf("failed to put to world state: %v", err)
+	}
+
+	return ctx.GetStub().SetEvent("UpvotePost", []byte(payload))
+}
+
+func (s *SmartContract) DownvotePost(ctx contractapi.TransactionContextInterface, payload string) error {
+	downvote := Downvote{}
+	err := json.Unmarshal([]byte(payload), &downvote)
+	if err != nil {
+		return err
+	}
+
+	exists, err := s.PostExists(ctx, downvote.Hash)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("the post %s does not exist", downvote.Hash)
+	}
+
+	Post, _ := s.ReadPost(ctx, downvote.Hash)
+	Post.Downvotes = append(Post.Downvotes, downvote.Creator)
+	PostJSON, _ := json.Marshal(Post)
+
+	err = ctx.GetStub().PutState(downvote.Hash, PostJSON)
+	if err != nil {
+		return fmt.Errorf("failed to put to world state: %v", err)
+	}
+
+	return ctx.GetStub().SetEvent("DownvotePost", []byte(payload))
+}
+
+func (s *SmartContract) AddEmojiPost(ctx contractapi.TransactionContextInterface, payload string) error {
+	emoji := Emoji{}
+	err := json.Unmarshal([]byte(payload), &emoji)
+	if err != nil {
+		return err
+	}
+
+	exists, err := s.PostExists(ctx, emoji.Hash)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("the post %s does not exist", emoji.Hash)
+	}
+
+	Post, _ := s.ReadPost(ctx, emoji.Hash)
+	if Post.Emojis == nil {
+		Post.Emojis = make(map[uint][]string)
+	}
+	Post.Emojis[emoji.Code] = append(Post.Emojis[emoji.Code], emoji.Creator)
+	PostJSON, _ := json.Marshal(Post)
+
+	err = ctx.GetStub().PutState(emoji.Hash, PostJSON)
+	if err != nil {
+		return fmt.Errorf("failed to put to world state: %v", err)
+	}
+
+	return ctx.GetStub().SetEvent("AddEmojiPost", []byte(payload))
+}
+
+func (s *SmartContract) RemoveEmojiPost(ctx contractapi.TransactionContextInterface, payload string) error {
+	emoji := Emoji{}
+	err := json.Unmarshal([]byte(payload), &emoji)
+	if err != nil {
+		return err
+	}
+
+	exists, err := s.PostExists(ctx, emoji.Hash)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return fmt.Errorf("the post %s does not exist", emoji.Hash)
+	}
+
+	Post, _ := s.ReadPost(ctx, emoji.Hash)
+	if Post.Emojis[emoji.Code] != nil {
+		for i, v := range Post.Emojis[emoji.Code] {
+			if v == emoji.Creator {
+				Post.Emojis[emoji.Code] = append(Post.Emojis[emoji.Code][:i], Post.Emojis[emoji.Code][i+1:]...)
+				break
+			}
+		}
+		if len(Post.Emojis[emoji.Code]) == 0 {
+			delete(Post.Emojis, emoji.Code)
+		}
+	}
+
+	PostJSON, _ := json.Marshal(Post)
+
+	err = ctx.GetStub().PutState(emoji.Hash, PostJSON)
+	if err != nil {
+		return fmt.Errorf("failed to put to world state: %v", err)
+	}
+
+	return ctx.GetStub().SetEvent("RemoveEmojiPost", []byte(payload))
 }
 
 // GetAllPosts returns all posts found in world state
