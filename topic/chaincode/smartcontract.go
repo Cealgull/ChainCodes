@@ -155,7 +155,21 @@ func (s *SmartContract) UpvoteTopic(ctx contractapi.TransactionContextInterface,
 	}
 
 	topic, _ := s.ReadTopic(ctx, upvote.Hash)
-	topic.Upvotes = append(topic.Upvotes, upvote.Creator)
+	if topic.Upvotes == nil {
+		topic.Upvotes = make([]string, 0)
+	}
+	flag := true
+	for i, v := range topic.Upvotes {
+		if v == upvote.Creator {
+			topic.Upvotes = append(topic.Upvotes[:i], topic.Upvotes[i+1:]...)
+			flag = false
+			break
+		}
+	}
+	if flag {
+		topic.Upvotes = append(topic.Upvotes, upvote.Creator)
+	}
+
 	topicJSON, _ := json.Marshal(topic)
 	err = ctx.GetStub().PutState(upvote.Hash, topicJSON)
 
@@ -182,7 +196,21 @@ func (s *SmartContract) DownvoteTopic(ctx contractapi.TransactionContextInterfac
 	}
 
 	topic, _ := s.ReadTopic(ctx, downvote.Hash)
-	topic.Downvotes = append(topic.Downvotes, downvote.Creator)
+	if topic.Downvotes == nil {
+		topic.Downvotes = make([]string, 0)
+	}
+	flag := true
+	for i, v := range topic.Downvotes {
+		if v == downvote.Creator {
+			topic.Downvotes = append(topic.Downvotes[:i], topic.Downvotes[i+1:]...)
+			flag = false
+			break
+		}
+	}
+	if flag {
+		topic.Downvotes = append(topic.Downvotes, downvote.Creator)
+	}
+
 	topicJSON, _ := json.Marshal(topic)
 
 	err = ctx.GetStub().PutState(downvote.Hash, topicJSON)

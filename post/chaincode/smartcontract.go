@@ -156,7 +156,20 @@ func (s *SmartContract) UpvotePost(ctx contractapi.TransactionContextInterface, 
 	}
 
 	Post, _ := s.ReadPost(ctx, upvote.Hash)
-	Post.Upvotes = append(Post.Upvotes, upvote.Creator)
+	if Post.Upvotes == nil {
+		Post.Upvotes = make([]string, 0)
+	}
+	flag := false
+	for _, v := range Post.Upvotes {
+		if v == upvote.Creator {
+			flag = true
+			break
+		}
+	}
+	if !flag {
+		Post.Upvotes = append(Post.Upvotes, upvote.Creator)
+	}
+
 	PostJSON, _ := json.Marshal(Post)
 	err = ctx.GetStub().PutState(upvote.Hash, PostJSON)
 
@@ -183,7 +196,20 @@ func (s *SmartContract) DownvotePost(ctx contractapi.TransactionContextInterface
 	}
 
 	Post, _ := s.ReadPost(ctx, downvote.Hash)
-	Post.Downvotes = append(Post.Downvotes, downvote.Creator)
+	if Post.Downvotes == nil {
+		Post.Downvotes = make([]string, 0)
+	}
+	flag := false
+	for _, v := range Post.Downvotes {
+		if v == downvote.Creator {
+			flag = true
+			break
+		}
+	}
+	if !flag {
+		Post.Downvotes = append(Post.Downvotes, downvote.Creator)
+	}
+
 	PostJSON, _ := json.Marshal(Post)
 
 	err = ctx.GetStub().PutState(downvote.Hash, PostJSON)
