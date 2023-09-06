@@ -19,15 +19,15 @@ type Tag struct {
 }
 
 type Category struct {
-	CategoryGroupID uint   `json:"categoryGroupID"`
-	Color           uint   `json:"color"`
-	Name            string `json:"name"`
+	CategoryGroupName string `json:"categoryGroupName"`
+	Color             uint   `json:"color"`
+	Name              string `json:"name"`
 }
 
 type CategoryGroup struct {
-	Name       string `json:"name"`
-	Color      uint   `json:"color"`
-	Categories []uint `json:"categories"`
+	Name       string   `json:"name"`
+	Color      uint     `json:"color"`
+	Categories []string `json:"categories"`
 }
 
 // CreateTag creates a tag.

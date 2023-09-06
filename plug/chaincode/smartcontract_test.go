@@ -166,7 +166,7 @@ func TestGetAllTags(t *testing.T) {
 var sampleCategory = &chaincode.Category{
 	Name:            "category1",
 	Color:           1,
-	CategoryGroupID: 1,
+	CategoryGroupName: "1",
 }
 
 var sampleInput2, _ = json.Marshal(sampleCategory)
