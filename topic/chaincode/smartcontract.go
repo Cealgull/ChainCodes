@@ -43,6 +43,7 @@ type Emoji struct {
 	Code    string `json:"code"`
 }
 
+
 // CreateTopic creates a topic.
 func (s *SmartContract) CreateTopic(ctx contractapi.TransactionContextInterface, payload string) error {
 
