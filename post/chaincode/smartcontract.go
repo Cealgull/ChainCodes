@@ -24,9 +24,9 @@ type Post struct {
 	BelongTo string    `json:"belongTo"`
 	Assets   []string  `json:"assets,omitempty"`
 
-	Upvotes   []string          `json:"upvotes,omitempty"`
-	Downvotes []string          `json:"downvotes,omitempty"`
-	Emojis    map[uint][]string `json:"emojis,omitempty"`
+	Upvotes   []string            `json:"upvotes,omitempty"`
+	Downvotes []string            `json:"downvotes,omitempty"`
+	Emojis    map[string][]string `json:"emojis,omitempty"`
 }
 
 type Upvote struct {
@@ -42,7 +42,7 @@ type Downvote struct {
 type Emoji struct {
 	Hash    string `json:"hash"`
 	Creator string `json:"creator"`
-	Code    uint   `json:"code"`
+	Code    string `json:"code"`
 }
 
 // CreatePost creates a post.
@@ -211,7 +211,7 @@ func (s *SmartContract) AddEmojiPost(ctx contractapi.TransactionContextInterface
 
 	Post, _ := s.ReadPost(ctx, emoji.Hash)
 	if Post.Emojis == nil {
-		Post.Emojis = make(map[uint][]string)
+		Post.Emojis = make(map[string][]string)
 	}
 	Post.Emojis[emoji.Code] = append(Post.Emojis[emoji.Code], emoji.Creator)
 	PostJSON, _ := json.Marshal(Post)

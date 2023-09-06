@@ -193,7 +193,7 @@ func TestDownvotePost(t *testing.T) {
 	require.EqualError(t, err, "failed to put to world state: failed inserting key")
 }
 
-var emojiInput, _ = json.Marshal(&chaincode.Emoji{Hash: "1", Creator: "1", Code: 1})
+var emojiInput, _ = json.Marshal(&chaincode.Emoji{Hash: "1", Creator: "1", Code: "1"})
 
 func TestAddEmojiPost(t *testing.T) {
 	transactionContext, chaincodeStub := prepMocksAsOrg1()
@@ -254,8 +254,8 @@ func TestRemoveEmojiPost(t *testing.T) {
 	err = post.RemoveEmojiPost(transactionContext, string(emojiInput))
 	require.EqualError(t, err, "failed to put to world state: failed inserting key")
 
-	testRemoveEmojiPost := &chaincode.Post{Hash: "1", Creator: "1", Emojis: make(map[uint][]string)}
-	testRemoveEmojiPost.Emojis[1] = []string{"1"}
+	testRemoveEmojiPost := &chaincode.Post{Hash: "1", Creator: "1", Emojis: make(map[string][]string)}
+	testRemoveEmojiPost.Emojis["1"] = []string{"1"}
 	bytes, _ = json.Marshal(testRemoveEmojiPost)
 	chaincodeStub.GetStateReturns(bytes, nil)
 	err = post.RemoveEmojiPost(transactionContext, string(emojiInput))

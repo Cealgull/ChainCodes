@@ -18,13 +18,13 @@ type Topic struct {
 	Title    string   `json:"title"`
 	Creator  string   `json:"creator"`
 	CID      string   `json:"cid"`
-	Category string     `json:"category"`
-	Tags     []string   `json:"tags"`
+	Category string   `json:"category"`
+	Tags     []string `json:"tags"`
 	Images   []string `json:"images"`
 
-	Upvotes   []string          `json:"upvotes"`
-	Downvotes []string          `json:"downvotes"`
-	Emojis    map[uint][]string `json:"emojis"`
+	Upvotes   []string            `json:"upvotes"`
+	Downvotes []string            `json:"downvotes"`
+	Emojis    map[string][]string `json:"emojis"`
 }
 
 type Upvote struct {
@@ -40,7 +40,7 @@ type Downvote struct {
 type Emoji struct {
 	Hash    string `json:"hash"`
 	Creator string `json:"creator"`
-	Code    uint   `json:"code"`
+	Code    string `json:"code"`
 }
 
 // CreateTopic creates a topic.
@@ -210,7 +210,7 @@ func (s *SmartContract) AddEmojiTopic(ctx contractapi.TransactionContextInterfac
 
 	topic, _ := s.ReadTopic(ctx, emoji.Hash)
 	if topic.Emojis == nil {
-		topic.Emojis = make(map[uint][]string)
+		topic.Emojis = make(map[string][]string)
 	}
 	topic.Emojis[emoji.Code] = append(topic.Emojis[emoji.Code], emoji.Creator)
 	topicJSON, _ := json.Marshal(topic)
