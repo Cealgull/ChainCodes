@@ -14,19 +14,19 @@ type SmartContract struct {
 
 type Tag struct {
 	Name        string `json:"name"`
-	CreatorID   uint   `json:"creatorID"`
+	Creator     string `json:"creator"`
 	Description string `json:"description"`
 }
 
 type Category struct {
 	CategoryGroupName string `json:"categoryGroupName"`
-	Color             uint   `json:"color"`
+	Color             string `json:"color"`
 	Name              string `json:"name"`
 }
 
 type CategoryGroup struct {
 	Name       string   `json:"name"`
-	Color      uint     `json:"color"`
+	Color      string   `json:"color"`
 	Categories []string `json:"categories"`
 }
 

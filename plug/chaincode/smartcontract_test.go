@@ -48,7 +48,7 @@ const myOrg2PrivCollection = "Org2TestmspPrivateCollection"
 
 var sampleTag = &chaincode.Tag{
 	Name:        "tag1",
-	CreatorID:   1,
+	Creator:     "1",
 	Description: "tag1",
 }
 
@@ -112,7 +112,7 @@ func TestUpdateTag(t *testing.T) {
 	err = tag.UpdateTag(transactionContext, string(sampleInput1))
 	require.EqualError(t, err, "failed to read from world state: failure")
 
-	tmpTag := &chaincode.Tag{Name: "1", CreatorID: 1}
+	tmpTag := &chaincode.Tag{Name: "1", Creator: "1"}
 	bytes, _ := json.Marshal(tmpTag)
 	chaincodeStub.GetStateReturns(bytes, nil)
 
@@ -122,7 +122,7 @@ func TestUpdateTag(t *testing.T) {
 	err = tag.UpdateTag(transactionContext, "sad")
 	require.EqualError(t, err, "invalid character 's' looking for beginning of value")
 
-	tmpTag = &chaincode.Tag{Name: "1", CreatorID: 1}
+	tmpTag = &chaincode.Tag{Name: "1", Creator: "1"}
 	bytes, _ = json.Marshal(tmpTag)
 	chaincodeStub.GetStateReturns(bytes, nil)
 
@@ -164,8 +164,8 @@ func TestGetAllTags(t *testing.T) {
 }
 
 var sampleCategory = &chaincode.Category{
-	Name:            "category1",
-	Color:           1,
+	Name:              "category1",
+	Color:             "1",
 	CategoryGroupName: "1",
 }
 
@@ -282,7 +282,7 @@ func TestGetAllCategorys(t *testing.T) {
 
 var sampleCategoryGroup = &chaincode.CategoryGroup{
 	Name:  "categoryGroup1",
-	Color: 1,
+	Color: "1",
 }
 
 var sampleInput3, _ = json.Marshal(sampleCategoryGroup)
