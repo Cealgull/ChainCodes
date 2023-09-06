@@ -18,8 +18,8 @@ type Topic struct {
 	Title    string   `json:"title"`
 	Creator  string   `json:"creator"`
 	CID      string   `json:"cid"`
-	Category uint     `json:"category"`
-	Tags     []uint   `json:"tags"`
+	Category string     `json:"category"`
+	Tags     []string   `json:"tags"`
 	Images   []string `json:"images"`
 
 	Upvotes   []string          `json:"upvotes"`

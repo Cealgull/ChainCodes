@@ -139,19 +139,19 @@ func TestAssignRole(t *testing.T) {
 
 	chaincodeStub.GetStateReturns(bytes, nil)
 	userprofile := chaincode.SmartContract{}
-	err = userprofile.AssignRole(transactionContext, "user1", 1)
+	err = userprofile.AssignRole(transactionContext, "user1", "1")
 	require.NoError(t, err)
 
 	chaincodeStub.PutStateReturns(fmt.Errorf("failed inserting key"))
-	err = userprofile.AssignRole(transactionContext, "user1", 0)
+	err = userprofile.AssignRole(transactionContext, "user1", "0")
 	require.EqualError(t, err, "failed to put to world state: failed inserting key")
 
 	chaincodeStub.GetStateReturns(nil, nil)
-	err = userprofile.AssignRole(transactionContext, "user1", 0)
+  err = userprofile.AssignRole(transactionContext, "user1", "0")
 	require.EqualError(t, err, "the user user1 does not exist")
 
 	chaincodeStub.GetStateReturns(nil, fmt.Errorf("unable to retrieve asset"))
-	err = userprofile.AssignRole(transactionContext, "", 0)
+	err = userprofile.AssignRole(transactionContext, "", "0")
 	require.EqualError(t, err, "failed to read from world state: unable to retrieve asset")
 }
 
@@ -160,25 +160,25 @@ func TestRemoveRole(t *testing.T) {
 	transactionContext := &mocks.TransactionContext{}
 	transactionContext.GetStubReturns(chaincodeStub)
 
-	expectedUser := &chaincode.Profile{Wallet: "user1", RolesAssigned: []uint{0, 1}}
+	expectedUser := &chaincode.Profile{Wallet: "user1", RolesAssigned: []string{"0", "1"}}
 	bytes, err := json.Marshal(expectedUser)
 	require.NoError(t, err)
 
 	chaincodeStub.GetStateReturns(bytes, nil)
 	userprofile := chaincode.SmartContract{}
-	err = userprofile.RemoveRole(transactionContext, "user1", 1)
+	err = userprofile.RemoveRole(transactionContext, "user1", "1")
 	require.NoError(t, err)
 
 	chaincodeStub.PutStateReturns(fmt.Errorf("failed inserting key"))
-	err = userprofile.RemoveRole(transactionContext, "user1", 0)
+  err = userprofile.RemoveRole(transactionContext, "user1", "0")
 	require.EqualError(t, err, "failed to put to world state: failed inserting key")
 
 	chaincodeStub.GetStateReturns(nil, nil)
-	err = userprofile.RemoveRole(transactionContext, "user1", 0)
+	err = userprofile.RemoveRole(transactionContext, "user1", "0")
 	require.EqualError(t, err, "the user user1 does not exist")
 
 	chaincodeStub.GetStateReturns(nil, fmt.Errorf("unable to retrieve asset"))
-	err = userprofile.RemoveRole(transactionContext, "", 0)
+  err = userprofile.RemoveRole(transactionContext, "", "0")
 	require.EqualError(t, err, "failed to read from world state: unable to retrieve asset")
 }
 
@@ -193,19 +193,19 @@ func TestAssignBadge(t *testing.T) {
 
 	chaincodeStub.GetStateReturns(bytes, nil)
 	userprofile := chaincode.SmartContract{}
-	err = userprofile.AssignBadge(transactionContext, "user1", 1)
+  err = userprofile.AssignBadge(transactionContext, "user1", "1")
 	require.NoError(t, err)
 
 	chaincodeStub.PutStateReturns(fmt.Errorf("failed inserting key"))
-	err = userprofile.AssignBadge(transactionContext, "user1", 1)
+  err = userprofile.AssignBadge(transactionContext, "user1", "1")
 	require.EqualError(t, err, "failed to put to world state: failed inserting key")
 
 	chaincodeStub.GetStateReturns(nil, nil)
-	err = userprofile.AssignBadge(transactionContext, "user1", 1)
+  err = userprofile.AssignBadge(transactionContext, "user1", "1")
 	require.EqualError(t, err, "the user user1 does not exist")
 
 	chaincodeStub.GetStateReturns(nil, fmt.Errorf("unable to retrieve asset"))
-	err = userprofile.AssignBadge(transactionContext, "", 1)
+  err = userprofile.AssignBadge(transactionContext, "", "1")
 	require.EqualError(t, err, "failed to read from world state: unable to retrieve asset")
 }
 
@@ -214,25 +214,25 @@ func TestRemoveBadge(t *testing.T) {
 	transactionContext := &mocks.TransactionContext{}
 	transactionContext.GetStubReturns(chaincodeStub)
 
-	expectedUser := &chaincode.Profile{Wallet: "user1", BadgesReceived: []uint{1, 0}}
+  expectedUser := &chaincode.Profile{Wallet: "user1", BadgesReceived: []string{"1", "0"}}
 	bytes, err := json.Marshal(expectedUser)
 	require.NoError(t, err)
 
 	chaincodeStub.GetStateReturns(bytes, nil)
 	userprofile := chaincode.SmartContract{}
-	err = userprofile.RemoveBadge(transactionContext, "user1", 1)
+	err = userprofile.RemoveBadge(transactionContext, "user1", "1")
 	require.NoError(t, err)
 
 	chaincodeStub.PutStateReturns(fmt.Errorf("failed inserting key"))
-	err = userprofile.RemoveBadge(transactionContext, "user1", 0)
+	err = userprofile.RemoveBadge(transactionContext, "user1", "0")
 	require.EqualError(t, err, "failed to put to world state: failed inserting key")
 
 	chaincodeStub.GetStateReturns(nil, nil)
-	err = userprofile.RemoveBadge(transactionContext, "user1", 0)
+	err = userprofile.RemoveBadge(transactionContext, "user1", "0")
 	require.EqualError(t, err, "the user user1 does not exist")
 
 	chaincodeStub.GetStateReturns(nil, fmt.Errorf("unable to retrieve asset"))
-	err = userprofile.RemoveBadge(transactionContext, "", 0)
+	err = userprofile.RemoveBadge(transactionContext, "", "0")
 	require.EqualError(t, err, "failed to read from world state: unable to retrieve asset")
 }
 

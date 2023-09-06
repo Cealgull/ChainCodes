@@ -26,10 +26,10 @@ type Profile struct {
 	Balance     int  `json:"balance"`
 	Credibility uint `json:"credibility"`
 
-	ActiveRole     uint   `json:"activeRole"`
-	RolesAssigned  []uint `json:"rolesAssigned"`
-	ActiveBadge    uint   `json:"activeBadge"`
-	BadgesReceived []uint `json:"badgesReceived"`
+	ActiveRole     string   `json:"activeRole"`
+	RolesAssigned  []string `json:"rolesAssigned"`
+	ActiveBadge    string   `json:"activeBadge"`
+	BadgesReceived []string `json:"badgesReceived"`
 }
 
 // CreateUser creates a new user on the ledger with given details.
@@ -124,7 +124,7 @@ func (s *SmartContract) UpdateUser(ctx contractapi.TransactionContextInterface, 
 	return ctx.GetStub().SetEvent("UpdateUser", []byte(payload))
 }
 
-func (s *SmartContract) AssignRole(ctx contractapi.TransactionContextInterface, wallet string, role uint) error {
+func (s *SmartContract) AssignRole(ctx contractapi.TransactionContextInterface, wallet string, role string) error {
 
 	user, err := s.ReadUser(ctx, wallet)
 	if err != nil {
@@ -144,7 +144,7 @@ func (s *SmartContract) AssignRole(ctx contractapi.TransactionContextInterface, 
 	return ctx.GetStub().SetEvent("AssignRole", userJSON)
 }
 
-func (s *SmartContract) RemoveRole(ctx contractapi.TransactionContextInterface, wallet string, role uint) error {
+func (s *SmartContract) RemoveRole(ctx contractapi.TransactionContextInterface, wallet string, role string) error {
 
 	user, err := s.ReadUser(ctx, wallet)
 
@@ -172,7 +172,7 @@ func (s *SmartContract) RemoveRole(ctx contractapi.TransactionContextInterface, 
 
 }
 
-func (s *SmartContract) AssignBadge(ctx contractapi.TransactionContextInterface, wallet string, badge uint) error {
+func (s *SmartContract) AssignBadge(ctx contractapi.TransactionContextInterface, wallet string, badge string) error {
 
 	user, err := s.ReadUser(ctx, wallet)
 	if err != nil {
@@ -192,7 +192,7 @@ func (s *SmartContract) AssignBadge(ctx contractapi.TransactionContextInterface,
 	return ctx.GetStub().SetEvent("AssignBadge", userJSON)
 }
 
-func (s *SmartContract) RemoveBadge(ctx contractapi.TransactionContextInterface, wallet string, badge uint) error {
+func (s *SmartContract) RemoveBadge(ctx contractapi.TransactionContextInterface, wallet string, badge string) error {
 	user, err := s.ReadUser(ctx, wallet)
 	if err != nil {
 		return err
