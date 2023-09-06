@@ -13,9 +13,9 @@ type SmartContract struct {
 }
 
 type Tag struct {
-	Name        string `json:"name"`
-	Creator     string `json:"creator"`
-	Description string `json:"description"`
+	Name          string `json:"name"`
+	CreatorWallet string `json:"creatorWallet"`
+	Description   string `json:"description"`
 }
 
 type Category struct {

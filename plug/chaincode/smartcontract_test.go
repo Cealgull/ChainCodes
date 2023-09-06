@@ -47,9 +47,9 @@ const myOrg2Clientid = "myOrg2Userid"
 const myOrg2PrivCollection = "Org2TestmspPrivateCollection"
 
 var sampleTag = &chaincode.Tag{
-	Name:        "tag1",
-	Creator:     "1",
-	Description: "tag1",
+	Name:          "tag1",
+	CreatorWallet: "1",
+	Description:   "tag1",
 }
 
 var sampleInput1, _ = json.Marshal(sampleTag)
@@ -112,7 +112,7 @@ func TestUpdateTag(t *testing.T) {
 	err = tag.UpdateTag(transactionContext, string(sampleInput1))
 	require.EqualError(t, err, "failed to read from world state: failure")
 
-	tmpTag := &chaincode.Tag{Name: "1", Creator: "1"}
+	tmpTag := &chaincode.Tag{Name: "1", CreatorWallet: "1"}
 	bytes, _ := json.Marshal(tmpTag)
 	chaincodeStub.GetStateReturns(bytes, nil)
 
@@ -122,7 +122,7 @@ func TestUpdateTag(t *testing.T) {
 	err = tag.UpdateTag(transactionContext, "sad")
 	require.EqualError(t, err, "invalid character 's' looking for beginning of value")
 
-	tmpTag = &chaincode.Tag{Name: "1", Creator: "1"}
+	tmpTag = &chaincode.Tag{Name: "1", CreatorWallet: "1"}
 	bytes, _ = json.Marshal(tmpTag)
 	chaincodeStub.GetStateReturns(bytes, nil)
 
