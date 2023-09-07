@@ -157,6 +157,12 @@ func TestUpvotePost(t *testing.T) {
 	err = post.UpvotePost(transactionContext, string(upvoteInput))
 	require.NoError(t, err)
 
+	tmpPost = &chaincode.Post{Hash: "1", Creator: "1", Downvotes: []string{"1"}}
+	bytes, _ = json.Marshal(tmpPost)
+	chaincodeStub.GetStateReturns(bytes, nil)
+	err = post.UpvotePost(transactionContext, string(upvoteInput))
+	require.NoError(t, err)
+
 	err = post.UpvotePost(transactionContext, string(upvoteInput))
 	require.NoError(t, err)
 
@@ -191,6 +197,12 @@ func TestDownvotePost(t *testing.T) {
 	require.NoError(t, err)
 
 	tmpPost = &chaincode.Post{Hash: "1", Creator: "1", Downvotes: []string{"1"}}
+	bytes, _ = json.Marshal(tmpPost)
+	chaincodeStub.GetStateReturns(bytes, nil)
+	err = post.DownvotePost(transactionContext, string(upvoteInput))
+	require.NoError(t, err)
+
+	tmpPost = &chaincode.Post{Hash: "1", Creator: "1", Upvotes: []string{"1"}}
 	bytes, _ = json.Marshal(tmpPost)
 	chaincodeStub.GetStateReturns(bytes, nil)
 	err = post.DownvotePost(transactionContext, string(upvoteInput))

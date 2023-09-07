@@ -168,6 +168,14 @@ func (s *SmartContract) UpvoteTopic(ctx contractapi.TransactionContextInterface,
 	}
 	if flag {
 		topic.Upvotes = append(topic.Upvotes, upvote.Creator)
+		if topic.Downvotes != nil {
+			for i, v := range topic.Downvotes {
+				if v == upvote.Creator {
+					topic.Downvotes = append(topic.Downvotes[:i], topic.Downvotes[i+1:]...)
+					break
+				}
+			}
+		}
 	}
 
 	topicJSON, _ := json.Marshal(topic)
@@ -209,6 +217,14 @@ func (s *SmartContract) DownvoteTopic(ctx contractapi.TransactionContextInterfac
 	}
 	if flag {
 		topic.Downvotes = append(topic.Downvotes, downvote.Creator)
+		if topic.Upvotes != nil {
+			for i, v := range topic.Upvotes {
+				if v == downvote.Creator {
+					topic.Upvotes = append(topic.Upvotes[:i], topic.Upvotes[i+1:]...)
+					break
+				}
+			}
+		}
 	}
 
 	topicJSON, _ := json.Marshal(topic)

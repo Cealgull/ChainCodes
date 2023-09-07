@@ -163,6 +163,12 @@ func TestUpvoteTopic(t *testing.T) {
 	err = topic.UpvoteTopic(transactionContext, string(upvoteInput))
 	require.NoError(t, err)
 
+	tmpTopic = &chaincode.Topic{Hash: "1", Creator: "1", Downvotes: []string{"1"}}
+	bytes, _ = json.Marshal(tmpTopic)
+	chaincodeStub.GetStateReturns(bytes, nil)
+	err = topic.UpvoteTopic(transactionContext, string(upvoteInput))
+	require.NoError(t, err)
+
 	err = topic.UpvoteTopic(transactionContext, "sad")
 	require.EqualError(t, err, "invalid character 's' looking for beginning of value")
 
@@ -194,6 +200,12 @@ func TestDownvoteTopic(t *testing.T) {
 	require.NoError(t, err)
 
 	tmpTopic = &chaincode.Topic{Hash: "1", Creator: "1", Downvotes: []string{"1"}}
+	bytes, _ = json.Marshal(tmpTopic)
+	chaincodeStub.GetStateReturns(bytes, nil)
+	err = topic.DownvoteTopic(transactionContext, string(upvoteInput))
+	require.NoError(t, err)
+
+	tmpTopic = &chaincode.Topic{Hash: "1", Creator: "1", Upvotes: []string{"1"}}
 	bytes, _ = json.Marshal(tmpTopic)
 	chaincodeStub.GetStateReturns(bytes, nil)
 	err = topic.DownvoteTopic(transactionContext, string(upvoteInput))

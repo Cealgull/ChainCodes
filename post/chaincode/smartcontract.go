@@ -155,22 +155,30 @@ func (s *SmartContract) UpvotePost(ctx contractapi.TransactionContextInterface, 
 		return fmt.Errorf("the post %s does not exist", upvote.Hash)
 	}
 
-	Post, _ := s.ReadPost(ctx, upvote.Hash)
-	if Post.Upvotes == nil {
-		Post.Upvotes = make([]string, 0)
+	post, _ := s.ReadPost(ctx, upvote.Hash)
+	if post.Upvotes == nil {
+		post.Upvotes = make([]string, 0)
 	}
 	flag := false
-	for _, v := range Post.Upvotes {
+	for _, v := range post.Upvotes {
 		if v == upvote.Creator {
 			flag = true
 			break
 		}
 	}
 	if !flag {
-		Post.Upvotes = append(Post.Upvotes, upvote.Creator)
+		post.Upvotes = append(post.Upvotes, upvote.Creator)
+		if post.Downvotes != nil {
+			for i, v := range post.Downvotes {
+				if v == upvote.Creator {
+					post.Downvotes = append(post.Downvotes[:i], post.Downvotes[i+1:]...)
+					break
+				}
+			}
+		}
 	}
 
-	PostJSON, _ := json.Marshal(Post)
+	PostJSON, _ := json.Marshal(post)
 	err = ctx.GetStub().PutState(upvote.Hash, PostJSON)
 
 	if err != nil {
@@ -195,22 +203,30 @@ func (s *SmartContract) DownvotePost(ctx contractapi.TransactionContextInterface
 		return fmt.Errorf("the post %s does not exist", downvote.Hash)
 	}
 
-	Post, _ := s.ReadPost(ctx, downvote.Hash)
-	if Post.Downvotes == nil {
-		Post.Downvotes = make([]string, 0)
+	post, _ := s.ReadPost(ctx, downvote.Hash)
+	if post.Downvotes == nil {
+		post.Downvotes = make([]string, 0)
 	}
 	flag := false
-	for _, v := range Post.Downvotes {
+	for _, v := range post.Downvotes {
 		if v == downvote.Creator {
 			flag = true
 			break
 		}
 	}
 	if !flag {
-		Post.Downvotes = append(Post.Downvotes, downvote.Creator)
+		post.Downvotes = append(post.Downvotes, downvote.Creator)
+		if post.Upvotes != nil {
+			for i, v := range post.Upvotes {
+				if v == downvote.Creator {
+					post.Upvotes = append(post.Upvotes[:i], post.Upvotes[i+1:]...)
+					break
+				}
+			}
+		}
 	}
 
-	PostJSON, _ := json.Marshal(Post)
+	PostJSON, _ := json.Marshal(post)
 
 	err = ctx.GetStub().PutState(downvote.Hash, PostJSON)
 	if err != nil {
