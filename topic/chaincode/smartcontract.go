@@ -22,6 +22,8 @@ type Topic struct {
 	Tags     []string `json:"tags"`
 	Images   []string `json:"images"`
 
+	Deleted bool `json:"deleted"`
+
 	Upvotes   []string            `json:"upvotes"`
 	Downvotes []string            `json:"downvotes"`
 	Emojis    map[string][]string `json:"emojis"`
@@ -43,6 +45,10 @@ type Emoji struct {
 	Code    string `json:"code"`
 }
 
+type Delete struct {
+	Hash    string `json:"hash"`
+	Creator string `json:"creator"`
+}
 
 // CreateTopic creates a topic.
 func (s *SmartContract) CreateTopic(ctx contractapi.TransactionContextInterface, payload string) error {
@@ -69,6 +75,38 @@ func (s *SmartContract) CreateTopic(ctx contractapi.TransactionContextInterface,
 	}
 
 	return ctx.GetStub().SetEvent("CreateTopic", []byte(payload))
+}
+
+func (s *SmartContract) DeleteTopic(ctx contractapi.TransactionContextInterface, payload string) error {
+	delete := Delete{}
+
+	err := json.Unmarshal([]byte(payload), &delete)
+	if err != nil {
+		return err
+	}
+
+	exists, err := s.TopicExists(ctx, delete.Hash)
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return fmt.Errorf("the topic %s does not exist", delete.Hash)
+	}
+
+	topic, _ := s.ReadTopic(ctx, delete.Hash)
+	if topic.Creator != delete.Creator {
+		return fmt.Errorf("the topic %s is not created by %s", delete.Hash, delete.Creator)
+	}
+
+	topic.Deleted = true
+	topicJSON, _ := json.Marshal(topic)
+	err = ctx.GetStub().PutState(delete.Hash, topicJSON)
+	if err != nil {
+		return fmt.Errorf("failed to put to world state: %v", err)
+	}
+
+	return ctx.GetStub().SetEvent("DeleteTopic", []byte(payload))
 }
 
 // TopicExists returns true when topic with given ID exists in world state

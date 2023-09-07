@@ -85,6 +85,47 @@ func TestCreatePost(t *testing.T) {
 
 }
 
+func TestDeletePost(t *testing.T) {
+	deleteRequest := &chaincode.Delete{Hash: "1", Creator: "1"}
+	deleteInput, _ := json.Marshal(deleteRequest)
+
+	transactionContext, chaincodeStub := prepMocksAsOrg1()
+	post := chaincode.SmartContract{}
+
+	chaincodeStub.GetStateReturns([]byte{}, fmt.Errorf("failure"))
+	err := post.DeletePost(transactionContext, string(deleteInput))
+	require.EqualError(t, err, "failed to read from world state: failure")
+
+	expectedPost := &chaincode.Post{Hash: "1", Creator: "1"}
+	bytes, err := json.Marshal(expectedPost)
+	require.NoError(t, err)
+	chaincodeStub.GetStateReturns(bytes, nil)
+	err = post.DeletePost(transactionContext, string(deleteInput))
+	require.NoError(t, err)
+
+	chaincodeStub.GetStateReturns(nil, nil)
+	err = post.DeletePost(transactionContext, string(deleteInput))
+	require.EqualError(t, err, "the post 1 does not exist")
+
+	expectedPost = &chaincode.Post{Hash: "1", Creator: "2"}
+	bytes, err = json.Marshal(expectedPost)
+	require.NoError(t, err)
+	chaincodeStub.GetStateReturns(bytes, nil)
+	err = post.DeletePost(transactionContext, string(deleteInput))
+	require.EqualError(t, err, "the post 1 is not created by 1")
+
+	expectedPost = &chaincode.Post{Hash: "1", Creator: "1"}
+	bytes, err = json.Marshal(expectedPost)
+	require.NoError(t, err)
+	chaincodeStub.GetStateReturns(bytes, nil)
+	chaincodeStub.PutStateReturns(fmt.Errorf("failed inserting key"))
+	err = post.DeletePost(transactionContext, string(deleteInput))
+	require.EqualError(t, err, "failed to put to world state: failed inserting key")
+
+	err = post.DeletePost(transactionContext, "sad")
+	require.EqualError(t, err, "invalid character 's' looking for beginning of value")
+}
+
 func TestReadPost(t *testing.T) {
 	transactionContext, chaincodeStub := prepMocksAsOrg1()
 	post := chaincode.SmartContract{}

@@ -85,6 +85,47 @@ func TestCreateTopic(t *testing.T) {
 	require.EqualError(t, err, "failed to put to world state: failed inserting key")
 }
 
+func TestDeleteTopic(t *testing.T) {
+	deleteRequest := &chaincode.Delete{Hash: "1", Creator: "1"}
+	deleteInput, _ := json.Marshal(deleteRequest)
+
+	transactionContext, chaincodeStub := prepMocksAsOrg1()
+	topic := chaincode.SmartContract{}
+
+	chaincodeStub.GetStateReturns([]byte{}, fmt.Errorf("failure"))
+	err := topic.DeleteTopic(transactionContext, string(deleteInput))
+	require.EqualError(t, err, "failed to read from world state: failure")
+
+	expectedTopic := &chaincode.Topic{Hash: "1", Creator: "1"}
+	bytes, err := json.Marshal(expectedTopic)
+	require.NoError(t, err)
+	chaincodeStub.GetStateReturns(bytes, nil)
+	err = topic.DeleteTopic(transactionContext, string(deleteInput))
+	require.NoError(t, err)
+
+	chaincodeStub.GetStateReturns(nil, nil)
+	err = topic.DeleteTopic(transactionContext, string(deleteInput))
+	require.EqualError(t, err, "the topic 1 does not exist")
+
+	expectedTopic = &chaincode.Topic{Hash: "1", Creator: "2"}
+	bytes, err = json.Marshal(expectedTopic)
+	require.NoError(t, err)
+	chaincodeStub.GetStateReturns(bytes, nil)
+	err = topic.DeleteTopic(transactionContext, string(deleteInput))
+	require.EqualError(t, err, "the topic 1 is not created by 1")
+
+	expectedTopic = &chaincode.Topic{Hash: "1", Creator: "1"}
+	bytes, err = json.Marshal(expectedTopic)
+	require.NoError(t, err)
+	chaincodeStub.GetStateReturns(bytes, nil)
+	chaincodeStub.PutStateReturns(fmt.Errorf("failed inserting key"))
+	err = topic.DeleteTopic(transactionContext, string(deleteInput))
+	require.EqualError(t, err, "failed to put to world state: failed inserting key")
+
+	err = topic.DeleteTopic(transactionContext, "sad")
+	require.EqualError(t, err, "invalid character 's' looking for beginning of value")
+}
+
 func TestReadTopic(t *testing.T) {
 	transactionContext, chaincodeStub := prepMocksAsOrg1()
 	topic := chaincode.SmartContract{}

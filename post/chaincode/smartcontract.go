@@ -14,12 +14,14 @@ type SmartContract struct {
 }
 
 type Post struct {
-	Hash     string    `json:"hash"`
-	Creator  string    `json:"creator"`
-	CID      string    `json:"cid"`
-	ReplyTo  string    `json:"replyTo"`
-	BelongTo string    `json:"belongTo"`
-	Assets   []string  `json:"assets,omitempty"`
+	Hash     string   `json:"hash"`
+	Creator  string   `json:"creator"`
+	CID      string   `json:"cid"`
+	ReplyTo  string   `json:"replyTo"`
+	BelongTo string   `json:"belongTo"`
+	Assets   []string `json:"assets,omitempty"`
+
+	Deleted bool `json:"deleted"`
 
 	Upvotes   []string            `json:"upvotes,omitempty"`
 	Downvotes []string            `json:"downvotes,omitempty"`
@@ -40,6 +42,11 @@ type Emoji struct {
 	Hash    string `json:"hash"`
 	Creator string `json:"creator"`
 	Code    string `json:"code"`
+}
+
+type Delete struct {
+	Hash    string `json:"hash"`
+	Creator string `json:"creator"`
 }
 
 // CreatePost creates a post.
@@ -66,6 +73,38 @@ func (s *SmartContract) CreatePost(ctx contractapi.TransactionContextInterface, 
 	}
 
 	return ctx.GetStub().SetEvent("CreatePost", []byte(payload))
+}
+
+func (s *SmartContract) DeletePost(ctx contractapi.TransactionContextInterface, payload string) error {
+	delete := Delete{}
+
+	err := json.Unmarshal([]byte(payload), &delete)
+	if err != nil {
+		return err
+	}
+
+	exists, err := s.PostExists(ctx, delete.Hash)
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return fmt.Errorf("the post %s does not exist", delete.Hash)
+	}
+
+	post, _ := s.ReadPost(ctx, delete.Hash)
+	if post.Creator != delete.Creator {
+		return fmt.Errorf("the post %s is not created by %s", delete.Hash, delete.Creator)
+	}
+
+	post.Deleted = true
+	postJSON, _ := json.Marshal(post)
+	err = ctx.GetStub().PutState(delete.Hash, postJSON)
+	if err != nil {
+		return fmt.Errorf("failed to put to world state: %v", err)
+	}
+
+	return ctx.GetStub().SetEvent("DeletePost", []byte(payload))
 }
 
 // PostExists returns true when post with given ID exists in world state
