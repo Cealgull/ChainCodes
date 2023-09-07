@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"time"
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
@@ -18,8 +17,6 @@ type Post struct {
 	Hash     string    `json:"hash"`
 	Creator  string    `json:"creator"`
 	CID      string    `json:"cid"`
-	CreateAt time.Time `json:"createAt"`
-	UpdateAt time.Time `json:"updateAt"`
 	ReplyTo  string    `json:"replyTo"`
 	BelongTo string    `json:"belongTo"`
 	Assets   []string  `json:"assets,omitempty"`
