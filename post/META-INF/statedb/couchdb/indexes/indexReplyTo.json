@@ -1,6 +1,0 @@
-{
-  "index": { "fields": ["replyTo"] },
-  "ddoc": "indexReplyToDoc",
-  "name": "indexReplyTo",
-  "type": "json"
-}
