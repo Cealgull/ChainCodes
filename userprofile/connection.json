@@ -1,0 +1,5 @@
+{
+  "address": "user.chaincode.cealgull.com:8080",
+  "dial_timeout": "10s",
+  "tls_required": false
+}
