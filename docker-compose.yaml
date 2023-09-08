@@ -1,0 +1,47 @@
+version: "3.6"
+
+networks:
+  fabric_test:
+    name: "fabric_test"
+    external: true
+
+services:
+  plug.chaincode.cealgull.com:
+    build: plug
+    hostname: plug.chaincode.cealgull.com
+    env_file:
+      - plug/plug.env
+    networks:
+      - fabric_test
+    expose:
+      - 8080
+
+  topic.chaincode.cealgull.com:
+    build: topic
+    hostname: topic.chaincode.cealgull.com
+    env_file:
+      - topic/topic.env
+    networks:
+      - fabric_test
+    expose:
+      - 8080
+
+  post.chaincode.cealgull.com:
+    build: post
+    hostname: post.chaincode.cealgull.com
+    env_file:
+      - post/post.env
+    networks:
+      - fabric_test
+    expose:
+      - 8080
+
+  user.chaincode.cealgull.com:
+    build: userprofile
+    hostname: user.chaincode.cealgull.com
+    env_file:
+      - userprofile/userprofile.env
+    networks:
+      - fabric_test
+    expose:
+      - 8080
