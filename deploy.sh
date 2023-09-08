@@ -2,6 +2,9 @@
 for CC in ./*/;
 do
   CC=$(basename $CC)
-  tar -czf ./${CC}/code.tar.gz ./${CC}/connection.json
-  tar -czf ./cealgull_${CC}.tar.gz ./${CC}/code.tar.gz ./${CC}/metadata.json
+  cd ${CC}
+  tar -czf code.tar.gz connection.json
+  tar -czf cealgull_${CC}.tar.gz code.tar.gz metadata.json
+  cd ..
+  mv ${CC}/cealgull_${CC}.tar.gz .
 done
